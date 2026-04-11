@@ -133,13 +133,6 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(118, 185, 0, 0.3);
     }
 
-    /* ── Download Button Text Override ── */
-    .stDownloadButton span,
-    .stButton > button[aria-label*="Download"] span {
-        color: #000000 !important; 
-        font-weight: 700 !important;
-    }
-
     /* ── Expander ── */
     [data-testid="stExpander"] {
         background: rgba(22, 27, 39, 0.6);
