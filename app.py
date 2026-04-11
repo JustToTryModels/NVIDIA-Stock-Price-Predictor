@@ -1,4 +1,3 @@
-# Code-1
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -108,60 +107,30 @@ st.markdown("""
 
     /* ── Buttons ── */
     .stButton > button {
-        background: linear-gradient(90deg, #29ABE2, #0077B6);
-        color: white !important;
+        background: linear-gradient(135deg, #76b900 0%, #5a8f00 100%);
+        color: #0a0a0f !important;
         border: none;
-        border-radius: 25px;
-        padding: 10px 20px;
-        font-size: 1.2em !important;
-        font-weight: bold;
+        border-radius: 12px;
+        padding: 14px 32px;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.03em;
         cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 5px;
-        width: auto;
-        min-width: 100px;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 16px rgba(118, 185, 0, 0.3);
+        width: 100%;
+        text-transform: uppercase;
     }
 
     .stButton > button:hover {
-        transform: scale(1.05);
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(118, 185, 0, 0.5);
+        background: linear-gradient(135deg, #8fd400 0%, #76b900 100%);
     }
 
     .stButton > button:active {
-        transform: scale(0.98);
-    }
-
-    /* ── Download Button Specific Styling ── */
-    .stDownloadButton > button {
-        background: linear-gradient(90deg, #29ABE2, #0077B6);
-        color: white !important;
-        border: none;
-        border-radius: 25px;
-        padding: 10px 20px;
-        font-size: 1.2em !important;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 5px;
-        width: auto;
-        min-width: 100px;
-    }
-
-    .stDownloadButton > button:hover {
-        transform: scale(1.05);
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-        color: white !important;
-    }
-
-    .stDownloadButton > button:active {
-        transform: scale(0.98);
+        transform: translateY(0px);
+        box-shadow: 0 2px 8px rgba(118, 185, 0, 0.3);
     }
 
     /* ── Expander ── */
