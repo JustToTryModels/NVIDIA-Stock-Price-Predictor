@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-# --- 1 & 2. Load the NEW NVIDIA model IN CACHE ---
+# Load the NVIDIA model with caching
 @st.cache_resource
 def load_nvidia_model():
     model_file = 'LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras'
@@ -17,7 +17,7 @@ def load_nvidia_model():
         print("NVIDIA model loaded successfully.")
         return model
     except Exception as e:
-        st.error(f"Error loading NVIDIA model: {e}")
+        print(f"Error loading NVIDIA model: {e}")
         return None
 
 model = load_nvidia_model()
@@ -44,7 +44,7 @@ def predict_next_business_days(model, data, look_back=5, days=5):
 
     for _ in range(days):
         X_input = np.reshape(last_sequence, (1, look_back, 1))
-        prediction = model.predict(X_input, verbose=0)
+        prediction = model.predict(X_input)
         predictions.append(prediction[0, 0])
         
         # Update the sequence for the next prediction
@@ -54,14 +54,41 @@ def predict_next_business_days(model, data, look_back=5, days=5):
     predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
     return predictions
 
-# --- 3. SESSION STATE to keep predictions ---
-if 'predictions' not in st.session_state:
-    st.session_state.predictions = None
-    st.session_state.prediction_dates = None
-    st.session_state.stock_data = None
-    st.session_state.dates = None
-    st.session_state.close_prices = None
-    st.session_state.num_days_predicted = None
+# Apply custom CSS to style the forecast button like the "Ask this question" button
+st.markdown(
+    """
+    <style>
+    .stButton > button {
+        background: linear-gradient(90deg, #ff8a00, #e52e71);
+        color: white !important;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-size: 1.2em !important;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 5px;
+        width: auto;
+        min-width: 100px;
+    }
+
+    .stButton > button:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+        color: white !important;
+    }
+
+    .stButton > button:active {
+        transform: scale(0.98);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Streamlit app layout
 st.markdown("<h1 style='text-align: center; font-size: 49px;'>Stock-Price-Predictor 📈📉💰</h1>", unsafe_allow_html=True)
@@ -76,7 +103,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)  # Add a gap between rows
 
 # Set NVIDIA as the selected stock
 stock = 'NVDA'
@@ -88,69 +115,47 @@ num_days = st.slider("Select number of business days to forecast", min_value=1, 
 current_date = datetime.now().strftime('%Y-%m-%d')
 st.write(f"Current Date: {current_date}")
 
-# Apply custom CSS
-st.markdown(
-    """
-    <style>
-    div.stButton > button#forecast-button {
-        background-color: green;
-        color: white;
-    }
-    div.stButton > button#forecast-button:focus,
-    div.stButton > button#forecast-button:hover,
-    div.stButton > button#forecast-button:active {
-        color: white;
-        outline: 2px solid green;
-    }
-    div.stButton > button:not(#forecast-button) {
-        background-color: red;
-        color: white;
-    }
-    div.stButton > button:not(#forecast-button):focus,
-    div.stButton > button:not(#forecast-button):hover,
-    div.stButton > button:not(#forecast-button):active {
-        color: white;
-        outline: 2px solid green;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+# Initialize session state to store prediction results
+if 'prediction_results' not in st.session_state:
+    st.session_state.prediction_results = None
 
 # Use unique key for the "Forecast" button
 if st.button(f'Predict Next {num_days} Days Stock Prices for {stock}', key='forecast-button'):
-    if model is not None:
-        # Load stock data
-        stock_data = get_stock_data(stock)
-        close_prices = stock_data['Close'].values.reshape(-1, 1)
-        dates = stock_data.index
+    # Load stock data
+    stock_data = get_stock_data(stock)
+    close_prices = stock_data['Close'].values.reshape(-1, 1)
+    dates = stock_data.index
 
-        # Predict the next num_days business days
-        look_back = 5
-        predictions = predict_next_business_days(model, close_prices, look_back=look_back, days=num_days)
-        
-        # Create dates for the predictions
-        last_date = dates[-1]
-        prediction_dates = generate_business_days(last_date + timedelta(days=1), num_days)
+    # Predict the next num_days business days
+    look_back = 5
+    predictions = predict_next_business_days(model, close_prices, look_back=look_back, days=num_days)
+    
+    # Create dates for the predictions
+    last_date = dates[-1]
+    prediction_dates = generate_business_days(last_date + timedelta(days=1), num_days)
 
-        # --- SAVE TO SESSION STATE ---
-        st.session_state.predictions = predictions
-        st.session_state.prediction_dates = prediction_dates
-        st.session_state.stock_data = stock_data
-        st.session_state.close_prices = close_prices
-        st.session_state.dates = dates
-        st.session_state.num_days_predicted = num_days
-    else:
-        st.error("Model could not be loaded. Predictions unavailable.")
+    # Store results in session state
+    st.session_state.prediction_results = {
+        'stock_data': stock_data,
+        'close_prices': close_prices,
+        'dates': dates,
+        'predictions': predictions,
+        'prediction_dates': prediction_dates,
+        'num_days': num_days,
+        'stock': stock
+    }
 
-# --- DISPLAY FROM SESSION STATE (persists when slider moves) ---
-if st.session_state.predictions is not None:
-    stock_data = st.session_state.stock_data
-    close_prices = st.session_state.close_prices
-    dates = st.session_state.dates
-    predictions = st.session_state.predictions
-    prediction_dates = st.session_state.prediction_dates
-    num_days_predicted = st.session_state.num_days_predicted
+# Display results from session state (persists across slider changes)
+if st.session_state.prediction_results is not None:
+    results = st.session_state.prediction_results
+
+    stock_data = results['stock_data']
+    close_prices = results['close_prices']
+    dates = results['dates']
+    predictions = results['predictions']
+    prediction_dates = results['prediction_dates']
+    stored_num_days = results['num_days']
+    stored_stock = results['stock']
 
     # Display the historical data
     st.markdown(f"### Historical Data for NVIDIA")
@@ -164,8 +169,9 @@ if st.session_state.predictions is not None:
     ax.plot(prediction_dates, predictions, label='Predicted Prices', linestyle='--', color='red')
     ax.set_xlabel('Date')
     ax.set_ylabel('Price')
-    ax.set_title(f'{stock} Stock Prices', fontsize=10, fontweight='bold')
+    ax.set_title(f'{stored_stock} Stock Prices', fontsize=10, fontweight='bold')
     ax.legend()
+
     st.pyplot(fig)
 
     st.write(" ")
@@ -175,11 +181,14 @@ if st.session_state.predictions is not None:
     ax2.plot(prediction_dates, predictions, marker='o', color='blue')
     ax2.set_xlabel('Date')
     ax2.set_ylabel('Predicted Price')
-    ax2.set_title(f'Predicted Stock Prices for the Next {num_days_predicted} Business Days ({stock})', fontsize=10, fontweight='bold')
+    ax2.set_title(f'Predicted Stock Prices for the Next {stored_num_days} Business Days ({stored_stock})', fontsize=10, fontweight='bold')
     
+    # Use DayLocator to specify spacing of tick marks and set the format for the date labels
     ax2.xaxis.set_major_locator(mdates.DayLocator(interval=1))
     ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    
     plt.xticks(rotation=45)
+    
     st.pyplot(fig2)
     
     st.write(" ")
@@ -189,5 +198,5 @@ if st.session_state.predictions is not None:
         'Date': prediction_dates,
         'Predicted Price': predictions.flatten()
     })
-    st.markdown(f"##### Predicted Stock Prices for the Next {num_days_predicted} Business Days ({stock})")
+    st.markdown(f"##### Predicted Stock Prices for the Next {stored_num_days} Business Days ({stored_stock})")
     st.dataframe(prediction_df, width=600)
