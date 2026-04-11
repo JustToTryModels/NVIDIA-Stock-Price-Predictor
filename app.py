@@ -133,6 +133,37 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(118, 185, 0, 0.3);
     }
 
+    /* ── Download Button Specific Styling ── */
+    [data-testid="stDownloadButton"] button {
+        background: linear-gradient(90deg, #ff8a00, #e52e71) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 25px !important;
+        padding: 10px 20px !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        cursor: pointer !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-top: 5px !important;
+        width: 100% !important;
+        box-shadow: 0 4px 16px rgba(255, 138, 0, 0.3) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    [data-testid="stDownloadButton"] button:hover {
+        transform: scale(1.05) !important;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3) !important;
+        background: linear-gradient(90deg, #ff9a00, #f52e71) !important;
+    }
+
+    [data-testid="stDownloadButton"] button:active {
+        transform: scale(0.98) !important;
+    }
+
     /* ── Expander ── */
     [data-testid="stExpander"] {
         background: rgba(22, 27, 39, 0.6);
@@ -696,7 +727,7 @@ STOCK = 'NVDA'
 with st.sidebar:
     st.markdown("""
     <div style='text-align:center; padding: 8px 0 20px 0;'>
-        <img src='https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/53b81d17aa5dbac6c1a29830ad4974ecd510a22d/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg'
+        <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png'
              style='width:160px; filter: brightness(1.1);'>
         <p style='color:#64748b; font-size:0.75rem; margin-top:10px; letter-spacing:0.1em;'>
             STOCK INTELLIGENCE PLATFORM
@@ -785,7 +816,7 @@ st.markdown("""
             </p>
         </div>
         <div style='text-align:right;'>
-            <img src='https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/53b81d17aa5dbac6c1a29830ad4974ecd510a22d/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg'
+            <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png'
                  style='width:200px; opacity:0.92;'>
         </div>
     </div>
