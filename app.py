@@ -50,7 +50,8 @@ st.markdown("""
 
     [data-testid="stSidebar"] .stMarkdown h1,
     [data-testid="stSidebar"] .stMarkdown h2,
-    [data-testid="stSidebar"] .stMarkdown h3 {
+    [data-testid="stSidebar"] .stMarkdown h3,
+    [data-testid="stSidebar"] .stMarkdown h4 {
         color: #76b900;
     }
 
@@ -143,8 +144,8 @@ st.markdown("""
 
     /* ── Tabs ── */
     [data-testid="stTabs"] [data-baseweb="tab-list"] {
-        display: flex;
-        width: 100%;
+        display: flex; /* <-- ADDED FOR RESPONSIVE SPREAD */
+        width: 100%;   /* <-- ADDED FOR RESPONSIVE SPREAD */
         background: rgba(15, 20, 30, 0.8);
         border-radius: 12px;
         padding: 4px;
@@ -153,8 +154,8 @@ st.markdown("""
     }
 
     [data-testid="stTabs"] [data-baseweb="tab"] {
-        flex-grow: 1;
-        justify-content: center;
+        flex-grow: 1; /* <-- ADDED FOR RESPONSIVE SPREAD */
+        justify-content: center; /* <-- ADDED FOR CENTERING CONTENT */
         background: transparent;
         border-radius: 8px;
         color: #94a3b8 !important;
@@ -321,7 +322,7 @@ st.markdown("""
     }
 
     .sidebar-stat-label {
-        color: #cbd5e1; /* <-- MODIFIED */
+        color: #cbd5e1;
         font-size: 0.78rem;
         font-weight: 500;
         text-transform: uppercase;
@@ -329,14 +330,9 @@ st.markdown("""
     }
 
     .sidebar-stat-value {
-        color: #cbd5e1; /* <-- MODIFIED */
+        color: #f1f5f9;
         font-size: 0.95rem;
         font-weight: 700;
-    }
-
-    /* ── Sidebar Widget Labels ── */
-    [data-testid="stSidebar"] label {
-        color: #cbd5e1 !important; /* <-- ADDED */
     }
 
     /* ── Status Indicator ── */
@@ -735,7 +731,7 @@ with st.sidebar:
     <div style='text-align:center; padding: 8px 0 20px 0;'>
         <img src='https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/53b81d17aa5dbac6c1a29830ad4974ecd510a22d/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg'
              style='width:160px; filter: brightness(1.1);'>
-        <p style='color:#cbd5e1; font-size:0.75rem; margin-top:10px; letter-spacing:0.1em;'>
+        <p style='color:#64748b; font-size:0.75rem; margin-top:10px; letter-spacing:0.1em;'>
             STOCK INTELLIGENCE PLATFORM
         </p>
     </div>
@@ -793,7 +789,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("""
-    <div style='color:#cbd5e1; font-size:0.72rem; text-align:center; line-height:1.7;'>
+    <div style='color:#475569; font-size:0.72rem; text-align:center; line-height:1.7;'>
         ⚠️ For educational purposes only.<br>
         Not financial advice.<br><br>
         Model predictions are based on<br>
