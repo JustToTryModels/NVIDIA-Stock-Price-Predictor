@@ -696,7 +696,7 @@ STOCK = 'NVDA'
 with st.sidebar:
     st.markdown("""
     <div style='text-align:center; padding: 8px 0 20px 0;'>
-        <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png'
+        <img src='https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/53b81d17aa5dbac6c1a29830ad4974ecd510a22d/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg'
              style='width:160px; filter: brightness(1.1);'>
         <p style='color:#64748b; font-size:0.75rem; margin-top:10px; letter-spacing:0.1em;'>
             STOCK INTELLIGENCE PLATFORM
@@ -785,7 +785,7 @@ st.markdown("""
             </p>
         </div>
         <div style='text-align:right;'>
-            <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png'
+            <img src='https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/53b81d17aa5dbac6c1a29830ad4974ecd510a22d/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg'
                  style='width:200px; opacity:0.92;'>
         </div>
     </div>
