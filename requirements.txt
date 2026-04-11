@@ -5,3 +5,5 @@ yfinance==1.2.1
 scikit-learn==1.8.0
 tensorflow==2.21.0
 matplotlib==3.10.8
+plotly==5.24.1
+kaleido==0.2.1
