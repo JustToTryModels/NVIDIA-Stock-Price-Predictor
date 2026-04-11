@@ -31,46 +31,64 @@ st.markdown("""
     /* ── Root Variables ── */
     :root {
         --nvidia-green:   #76b900;
-        --nvidia-dark:    #1a1a2e;
-        --card-bg:        #16213e;
-        --card-border:    #0f3460;
+        --nvidia-dark:    #ffffff;
+        --card-bg:        #f0f4f0;
+        --card-border:    #c8e6c9;
         --accent:         #76b900;
-        --text-primary:   #ffffff;
-        --text-secondary: #a0aec0;
-        --danger:         #ff4757;
-        --warning:        #ffa502;
-        --success:        #2ed573;
+        --text-primary:   #1a1a1a;
+        --text-secondary: #4a5568;
+        --danger:         #e53e3e;
+        --warning:        #d69e2e;
+        --success:        #276749;
     }
 
     /* ── Global Base ── */
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
+        background-color: #ffffff !important;
+        color: #1a1a1a !important;
     }
 
     .main {
-        background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #f7fdf7 50%, #edfaed 100%) !important;
         min-height: 100vh;
     }
 
     /* ── Hide Streamlit Defaults ── */
     #MainMenu, footer, header { visibility: hidden; }
 
+    /* ── Force white background on app ── */
+    .stApp {
+        background: linear-gradient(135deg, #ffffff 0%, #f7fdf7 50%, #edfaed 100%) !important;
+    }
+
+    /* ── Block container ── */
+    .block-container {
+        background: transparent !important;
+    }
+
     /* ── Sidebar ── */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
-        border-right: 1px solid #30363d;
+        background: linear-gradient(180deg, #f0faf0 0%, #e8f5e9 100%) !important;
+        border-right: 2px solid #a5d6a7;
     }
 
     [data-testid="stSidebar"] .stMarkdown h1,
     [data-testid="stSidebar"] .stMarkdown h2,
     [data-testid="stSidebar"] .stMarkdown h3 {
-        color: #76b900 !important;
+        color: #2e7d32 !important;
+    }
+
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] div {
+        color: #1a1a1a !important;
     }
 
     /* ── Metric Cards ── */
     .metric-card {
-        background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
-        border: 1px solid #0f3460;
+        background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%);
+        border: 1.5px solid #a5d6a7;
         border-radius: 16px;
         padding: 20px 24px;
         text-align: center;
@@ -83,13 +101,13 @@ st.markdown("""
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0;
-        height: 3px;
+        height: 4px;
         background: linear-gradient(90deg, #76b900, #a8e063);
     }
 
     .metric-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(118, 185, 0, 0.2);
+        box-shadow: 0 12px 40px rgba(118, 185, 0, 0.18);
     }
 
     .metric-label {
@@ -97,24 +115,24 @@ st.markdown("""
         font-weight: 600;
         letter-spacing: 1px;
         text-transform: uppercase;
-        color: #a0aec0;
+        color: #4a5568;
         margin-bottom: 8px;
     }
 
     .metric-value {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #ffffff;
+        color: #1a1a1a;
         line-height: 1.2;
     }
 
-    .metric-delta-positive { font-size: 0.85rem; color: #2ed573; font-weight: 600; margin-top: 4px; }
-    .metric-delta-negative { font-size: 0.85rem; color: #ff4757; font-weight: 600; margin-top: 4px; }
+    .metric-delta-positive { font-size: 0.85rem; color: #276749; font-weight: 600; margin-top: 4px; }
+    .metric-delta-negative { font-size: 0.85rem; color: #e53e3e; font-weight: 600; margin-top: 4px; }
 
     /* ── Hero Banner ── */
     .hero-banner {
-        background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #0d2137 100%);
-        border: 1px solid #30363d;
+        background: linear-gradient(135deg, #f0faf0 0%, #e8f5e9 40%, #f1f8e9 100%);
+        border: 1.5px solid #a5d6a7;
         border-radius: 20px;
         padding: 40px;
         margin-bottom: 32px;
@@ -127,14 +145,14 @@ st.markdown("""
         position: absolute;
         top: -50%; right: -10%;
         width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(118,185,0,0.08) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(118,185,0,0.12) 0%, transparent 70%);
         pointer-events: none;
     }
 
     .hero-title {
         font-size: 3rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #76b900, #a8e063, #ffffff);
+        background: linear-gradient(90deg, #2e7d32, #76b900, #33691e);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -144,7 +162,7 @@ st.markdown("""
 
     .hero-subtitle {
         font-size: 1.1rem;
-        color: #a0aec0;
+        color: #4a5568;
         font-weight: 400;
         margin: 0 0 20px 0;
     }
@@ -153,13 +171,13 @@ st.markdown("""
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(118,185,0,0.15);
-        border: 1px solid rgba(118,185,0,0.3);
+        background: rgba(118,185,0,0.12);
+        border: 1px solid rgba(118,185,0,0.4);
         border-radius: 20px;
         padding: 6px 14px;
         font-size: 0.8rem;
         font-weight: 600;
-        color: #76b900;
+        color: #2e7d32;
         margin-right: 8px;
         margin-bottom: 8px;
     }
@@ -175,20 +193,20 @@ st.markdown("""
     .section-header-line {
         flex: 1;
         height: 1px;
-        background: linear-gradient(90deg, #30363d, transparent);
+        background: linear-gradient(90deg, #a5d6a7, transparent);
     }
 
     .section-title {
         font-size: 1.3rem;
         font-weight: 700;
-        color: #ffffff;
+        color: #1a1a1a;
         white-space: nowrap;
     }
 
     /* ── Prediction Table ── */
     .pred-table-wrapper {
-        background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
-        border: 1px solid #0f3460;
+        background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%);
+        border: 1.5px solid #a5d6a7;
         border-radius: 16px;
         overflow: hidden;
     }
@@ -198,23 +216,30 @@ st.markdown("""
         grid-template-columns: 50px 1fr 1fr 1fr;
         gap: 0;
         padding: 14px 20px;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
         align-items: center;
         transition: background 0.2s;
     }
 
-    .pred-row:hover { background: rgba(118,185,0,0.05); }
-    .pred-row.header { background: rgba(118,185,0,0.1); font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: #76b900; }
+    .pred-row:hover { background: rgba(118,185,0,0.06); }
+    .pred-row.header {
+        background: rgba(118,185,0,0.12);
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #2e7d32;
+    }
     .pred-row:last-child { border-bottom: none; }
 
-    .pred-cell { color: #ffffff; font-size: 0.9rem; }
-    .pred-cell.positive { color: #2ed573; font-weight: 600; }
-    .pred-cell.negative { color: #ff4757; font-weight: 600; }
+    .pred-cell { color: #1a1a1a; font-size: 0.9rem; }
+    .pred-cell.positive { color: #276749; font-weight: 600; }
+    .pred-cell.negative { color: #e53e3e; font-weight: 600; }
 
     /* ── Predict Button ── */
     .stButton > button {
         background: linear-gradient(135deg, #76b900 0%, #a8e063 100%) !important;
-        color: #0a0a0f !important;
+        color: #ffffff !important;
         border: none !important;
         border-radius: 12px !important;
         padding: 14px 32px !important;
@@ -229,15 +254,15 @@ st.markdown("""
 
     .stButton > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 30px rgba(118,185,0,0.4) !important;
-        background: linear-gradient(135deg, #a8e063 0%, #76b900 100%) !important;
+        box-shadow: 0 8px 30px rgba(118,185,0,0.35) !important;
+        background: linear-gradient(135deg, #2e7d32 0%, #76b900 100%) !important;
     }
 
     .stButton > button:active { transform: translateY(0) !important; }
 
     /* ── Slider ── */
     .stSlider [data-baseweb="slider"] { padding: 0 4px; }
-    .stSlider [data-testid="stThumbValue"] { color: #76b900 !important; }
+    .stSlider [data-testid="stThumbValue"] { color: #2e7d32 !important; }
 
     /* ── Info / Warning boxes ── */
     .info-box {
@@ -247,18 +272,18 @@ st.markdown("""
         padding: 16px 20px;
         margin: 16px 0;
         font-size: 0.9rem;
-        color: #a0aec0;
+        color: #4a5568;
         line-height: 1.6;
     }
 
     .warning-box {
-        background: rgba(255,165,2,0.08);
-        border-left: 4px solid #ffa502;
+        background: rgba(214,158,46,0.08);
+        border-left: 4px solid #d69e2e;
         border-radius: 0 12px 12px 0;
         padding: 16px 20px;
         margin: 16px 0;
         font-size: 0.9rem;
-        color: #a0aec0;
+        color: #4a5568;
         line-height: 1.6;
     }
 
@@ -266,7 +291,7 @@ st.markdown("""
     [data-testid="stDataFrame"] {
         border-radius: 12px;
         overflow: hidden;
-        border: 1px solid #30363d;
+        border: 1.5px solid #a5d6a7;
     }
 
     /* ── Progress & Spinner ── */
@@ -275,17 +300,17 @@ st.markdown("""
 
     /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
-        background: #161b22;
+        background: #f0faf0;
         border-radius: 12px;
         padding: 4px;
         gap: 4px;
-        border: 1px solid #30363d;
+        border: 1.5px solid #a5d6a7;
     }
 
     .stTabs [data-baseweb="tab"] {
         background: transparent;
         border-radius: 8px;
-        color: #a0aec0;
+        color: #4a5568;
         font-weight: 600;
         padding: 10px 20px;
         border: none;
@@ -293,23 +318,41 @@ st.markdown("""
 
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, #76b900, #a8e063) !important;
-        color: #0a0a0f !important;
+        color: #ffffff !important;
     }
 
     /* ── Selectbox / Inputs ── */
     .stSelectbox [data-baseweb="select"] > div,
     .stMultiSelect [data-baseweb="select"] > div {
-        background: #161b22;
-        border: 1px solid #30363d;
+        background: #f0faf0;
+        border: 1.5px solid #a5d6a7;
         border-radius: 10px;
-        color: #ffffff;
+        color: #1a1a1a;
+    }
+
+    /* ── General text color overrides ── */
+    p, span, div, label {
+        color: #1a1a1a;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: #1a1a1a !important;
     }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0d1117; }
-    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #f0faf0; }
+    ::-webkit-scrollbar-thumb { background: #a5d6a7; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #76b900; }
+
+    /* ── Toggle ── */
+    .stCheckbox > label { color: #1a1a1a !important; }
+
+    /* ── Radio ── */
+    .stRadio > label { color: #1a1a1a !important; }
+
+    /* ── Select slider ── */
+    .stSelectSlider [data-baseweb="slider"] { padding: 0 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -345,8 +388,8 @@ def load_nvidia_model():
 @st.cache_data(ttl=300)
 def get_stock_data(ticker='NVDA'):
     try:
-        data      = yf.download(ticker, period='max', auto_adjust=True)
-        info      = yf.Ticker(ticker).info
+        data = yf.download(ticker, period='max', auto_adjust=True)
+        info = yf.Ticker(ticker).info
         return data, info
     except Exception as e:
         st.error(f"❌ Error fetching stock data: {e}")
@@ -362,34 +405,39 @@ def predict_next_business_days(model, data, look_back=5, days=5):
     predictions = []
 
     for _ in range(days):
-        X_input    = np.reshape(last_seq, (1, look_back, 1))
-        pred       = model.predict(X_input, verbose=0)
+        X_input  = np.reshape(last_seq, (1, look_back, 1))
+        pred     = model.predict(X_input, verbose=0)
         predictions.append(pred[0, 0])
-        last_seq   = np.append(last_seq[1:], pred, axis=0)
+        last_seq = np.append(last_seq[1:], pred, axis=0)
 
     return scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
 
 # ==============================
-# 🔹 Plotly Theme Helper
+# 🔹 Plotly Theme Helper (White)
 # ==============================
 PLOTLY_LAYOUT = dict(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(family='Inter', color='#a0aec0'),
+    paper_bgcolor='rgba(255,255,255,1)',
+    plot_bgcolor='rgba(247,253,247,1)',
+    font=dict(family='Inter', color='#1a1a1a'),
     xaxis=dict(
-        gridcolor='rgba(255,255,255,0.05)',
-        zerolinecolor='rgba(255,255,255,0.1)',
-        showgrid=True
+        gridcolor='rgba(165,214,167,0.4)',
+        zerolinecolor='rgba(0,0,0,0.15)',
+        showgrid=True,
+        tickfont=dict(color='#4a5568'),
+        titlefont=dict(color='#1a1a1a'),
     ),
     yaxis=dict(
-        gridcolor='rgba(255,255,255,0.05)',
-        zerolinecolor='rgba(255,255,255,0.1)',
-        showgrid=True
+        gridcolor='rgba(165,214,167,0.4)',
+        zerolinecolor='rgba(0,0,0,0.15)',
+        showgrid=True,
+        tickfont=dict(color='#4a5568'),
+        titlefont=dict(color='#1a1a1a'),
     ),
     legend=dict(
-        bgcolor='rgba(22,33,62,0.8)',
-        bordercolor='rgba(255,255,255,0.1)',
-        borderwidth=1
+        bgcolor='rgba(240,250,240,0.95)',
+        bordercolor='rgba(165,214,167,0.8)',
+        borderwidth=1,
+        font=dict(color='#1a1a1a'),
     ),
     margin=dict(l=0, r=0, t=40, b=0),
     hovermode='x unified',
@@ -407,10 +455,10 @@ with st.sidebar:
     st.markdown("""
     <div style="text-align:center; padding: 20px 0 10px;">
         <div style="font-size:2.5rem;">🤖</div>
-        <div style="font-size:1.1rem; font-weight:700; color:#76b900; margin-top:8px;">AI Stock Predictor</div>
-        <div style="font-size:0.75rem; color:#a0aec0; margin-top:4px;">LSTM Neural Network</div>
+        <div style="font-size:1.1rem; font-weight:700; color:#2e7d32; margin-top:8px;">AI Stock Predictor</div>
+        <div style="font-size:0.75rem; color:#4a5568; margin-top:4px;">LSTM Neural Network</div>
     </div>
-    <hr style="border-color:#30363d; margin:16px 0;">
+    <hr style="border-color:#a5d6a7; margin:16px 0;">
     """, unsafe_allow_html=True)
 
     st.markdown("### ⚙️ Forecast Settings")
@@ -430,8 +478,8 @@ with st.sidebar:
         format_func=lambda x: f"{x} days" if x < 365 else f"{x//365} yr{'s' if x//365>1 else ''}"
     )
 
-    show_volume   = st.toggle("Show Volume Bars",  value=True)
-    show_ma       = st.toggle("Show Moving Averages", value=True)
+    show_volume = st.toggle("Show Volume Bars",      value=True)
+    show_ma     = st.toggle("Show Moving Averages",  value=True)
 
     if show_ma:
         ma_periods = st.multiselect(
@@ -442,17 +490,19 @@ with st.sidebar:
     else:
         ma_periods = []
 
-    st.markdown("<hr style='border-color:#30363d; margin:16px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color:#a5d6a7; margin:16px 0;'>", unsafe_allow_html=True)
 
     # Model Info card
     st.markdown("""
-    <div style="background:rgba(118,185,0,0.08); border:1px solid rgba(118,185,0,0.2); border-radius:12px; padding:16px;">
-        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#76b900; font-weight:600; margin-bottom:10px;">🧠 Model Info</div>
-        <div style="font-size:0.8rem; color:#a0aec0; line-height:1.8;">
-            <div>Architecture &nbsp;→&nbsp; <span style="color:#fff;">LSTM</span></div>
-            <div>Look-back &nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#fff;">5 Days</span></div>
-            <div>Units &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#fff;">150</span></div>
-            <div>RMSE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#76b900; font-weight:700;">$1.32</span></div>
+    <div style="background:rgba(118,185,0,0.08); border:1.5px solid rgba(118,185,0,0.3);
+                border-radius:12px; padding:16px;">
+        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;
+                    color:#2e7d32; font-weight:600; margin-bottom:10px;">🧠 Model Info</div>
+        <div style="font-size:0.8rem; color:#4a5568; line-height:1.8;">
+            <div>Architecture &nbsp;→&nbsp; <span style="color:#1a1a1a; font-weight:600;">LSTM</span></div>
+            <div>Look-back &nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#1a1a1a; font-weight:600;">5 Days</span></div>
+            <div>Units &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#1a1a1a; font-weight:600;">150</span></div>
+            <div>RMSE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#2e7d32; font-weight:700;">$1.32</span></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -466,10 +516,12 @@ with st.sidebar:
     )
 
     st.markdown("""
-    <div style="margin-top:24px; padding:12px; background:rgba(255,165,2,0.08); border-radius:10px; border:1px solid rgba(255,165,2,0.2);">
-        <div style="font-size:0.7rem; color:#ffa502; font-weight:600; margin-bottom:4px;">⚠️ DISCLAIMER</div>
-        <div style="font-size:0.7rem; color:#a0aec0; line-height:1.5;">
-            This tool is for educational purposes only. Predictions are not financial advice. Always consult a qualified advisor before investing.
+    <div style="margin-top:24px; padding:12px; background:rgba(214,158,46,0.08);
+                border-radius:10px; border:1px solid rgba(214,158,46,0.3);">
+        <div style="font-size:0.7rem; color:#d69e2e; font-weight:600; margin-bottom:4px;">⚠️ DISCLAIMER</div>
+        <div style="font-size:0.7rem; color:#4a5568; line-height:1.5;">
+            This tool is for educational purposes only. Predictions are not financial advice.
+            Always consult a qualified advisor before investing.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -483,7 +535,7 @@ st.markdown("""
 <div class="hero-banner">
     <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png"
-             style="height:48px; filter: brightness(1.1);">
+             style="height:48px;">
         <div>
             <div class="hero-title">Stock Price Predictor</div>
             <div class="hero-subtitle">AI-powered forecasting using Long Short-Term Memory neural networks</div>
@@ -503,7 +555,7 @@ if 'prediction_results' not in st.session_state:
     st.session_state.prediction_results = None
 
 # ── Fetch Data ────────────────
-stock      = 'NVDA'
+stock = 'NVDA'
 stock_data, stock_info = get_stock_data(stock)
 
 if stock_data is None or stock_data.empty:
@@ -526,13 +578,13 @@ year_low      = float(stock_data['Close'].iloc[-252:].min())
 
 col1, col2, col3, col4, col5 = st.columns(5)
 metrics = [
-    (col1, "NVDA",          format_price(latest_close),
+    (col1, "NVDA",         format_price(latest_close),
      f"{'▲' if price_change>=0 else '▼'} {format_price(abs(price_change))} ({format_pct(price_pct)})",
      price_change >= 0),
-    (col2, "52-WEEK HIGH",  format_price(year_high),   "Past 252 Trading Days", True),
-    (col3, "52-WEEK LOW",   format_price(year_low),    "Past 252 Trading Days", True),
-    (col4, "YTD RETURN",    format_pct(ytd_return),    "Year-to-Date Performance", ytd_return >= 0),
-    (col5, "VOLUME",        f"{latest_vol/1e6:.1f}M",  "Latest Trading Session", True),
+    (col2, "52-WEEK HIGH", format_price(year_high),  "Past 252 Trading Days", True),
+    (col3, "52-WEEK LOW",  format_price(year_low),   "Past 252 Trading Days", True),
+    (col4, "YTD RETURN",   format_pct(ytd_return),   "Year-to-Date Performance", ytd_return >= 0),
+    (col5, "VOLUME",       f"{latest_vol/1e6:.1f}M", "Latest Trading Session", True),
 ]
 
 for col, label, value, delta, is_positive in metrics:
@@ -597,21 +649,21 @@ fig.add_trace(go.Candlestick(
     close=plot_data['Close'].squeeze(),
     low=plot_data['Low'].squeeze(),
     name='OHLC',
-    increasing_line_color='#2ed573',
-    decreasing_line_color='#ff4757',
-    increasing_fillcolor='rgba(46,213,115,0.3)',
-    decreasing_fillcolor='rgba(255,71,87,0.3)',
+    increasing_line_color='#276749',
+    decreasing_line_color='#e53e3e',
+    increasing_fillcolor='rgba(39,103,73,0.3)',
+    decreasing_fillcolor='rgba(229,62,62,0.3)',
 ), row=1, col=1)
 
 # Moving Averages
-ma_colors = {20: '#ffa502', 50: '#1e90ff', 100: '#a55eea', 200: '#ff6b81'}
+ma_colors = {20: '#d69e2e', 50: '#2b6cb0', 100: '#6b46c1', 200: '#c05621'}
 for period in ma_periods:
     if len(plot_data) >= period:
         ma_vals = plot_data['Close'].squeeze().rolling(period).mean()
         fig.add_trace(go.Scatter(
             x=plot_data.index, y=ma_vals,
             name=f'MA{period}',
-            line=dict(color=ma_colors.get(period, '#ffffff'), width=1.5, dash='dot'),
+            line=dict(color=ma_colors.get(period, '#4a5568'), width=1.5, dash='dot'),
             opacity=0.85,
         ), row=1, col=1)
 
@@ -621,7 +673,6 @@ if st.session_state.prediction_results is not None:
     pdts  = res['prediction_dates']
     pvals = res['predictions'].flatten()
 
-    # Bridge from last actual to first prediction
     bridge_x = [plot_data.index[-1]] + list(pdts)
     bridge_y = [latest_close]        + list(pvals)
 
@@ -631,12 +682,11 @@ if st.session_state.prediction_results is not None:
         line=dict(color='#76b900', width=3, dash='dash'),
         mode='lines+markers',
         marker=dict(size=8, color='#76b900', symbol='diamond',
-                    line=dict(color='#ffffff', width=1.5)),
+                    line=dict(color='#2e7d32', width=1.5)),
         fill='tonexty',
-        fillcolor='rgba(118,185,0,0.05)',
+        fillcolor='rgba(118,185,0,0.07)',
     ), row=1, col=1)
 
-    # Confidence band (±2% illustrative)
     upper = [v * 1.02 for v in bridge_y]
     lower = [v * 0.98 for v in bridge_y]
 
@@ -644,7 +694,7 @@ if st.session_state.prediction_results is not None:
         x=bridge_x + bridge_x[::-1],
         y=upper + lower[::-1],
         fill='toself',
-        fillcolor='rgba(118,185,0,0.08)',
+        fillcolor='rgba(118,185,0,0.07)',
         line=dict(color='rgba(0,0,0,0)'),
         name='Confidence Band',
         showlegend=True,
@@ -654,8 +704,8 @@ if st.session_state.prediction_results is not None:
 # Volume bars
 if show_volume:
     colors = [
-        '#2ed573' if float(plot_data['Close'].iloc[i]) >= float(plot_data['Open'].iloc[i])
-        else '#ff4757'
+        '#276749' if float(plot_data['Close'].iloc[i]) >= float(plot_data['Open'].iloc[i])
+        else '#e53e3e'
         for i in range(len(plot_data))
     ]
     fig.add_trace(go.Bar(
@@ -671,13 +721,15 @@ fig.update_layout(
     height=580 if show_volume else 460,
     title=dict(
         text=f"NVDA — {'Candlestick' if n_rows>1 else 'Price'} Chart  •  Last {history_days} Days",
-        font=dict(size=15, color='#ffffff'), x=0.01
+        font=dict(size=15, color='#1a1a1a'), x=0.01
     ),
     xaxis_rangeslider_visible=False,
 )
-fig.update_yaxes(title_text="Price (USD)", row=1, col=1, tickprefix="$")
+fig.update_yaxes(title_text="Price (USD)", row=1, col=1, tickprefix="$",
+                 tickfont=dict(color='#4a5568'))
 if show_volume:
-    fig.update_yaxes(title_text="Volume", row=2, col=1)
+    fig.update_yaxes(title_text="Volume", row=2, col=1,
+                     tickfont=dict(color='#4a5568'))
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -685,11 +737,11 @@ st.plotly_chart(fig, use_container_width=True)
 #  PREDICTION RESULTS
 # ══════════════════════════════
 if st.session_state.prediction_results is not None:
-    res          = st.session_state.prediction_results
-    predictions  = res['predictions']
-    pred_dates   = res['prediction_dates']
-    stored_days  = res['num_days']
-    last_actual  = res['last_actual']
+    res         = st.session_state.prediction_results
+    predictions = res['predictions']
+    pred_dates  = res['prediction_dates']
+    stored_days = res['num_days']
+    last_actual = res['last_actual']
 
     st.markdown("""
     <div class="section-header">
@@ -702,14 +754,13 @@ if st.session_state.prediction_results is not None:
 
     # ── Prediction line chart ──
     with col_chart:
-        pred_vals = predictions.flatten()
-        changes   = [pred_vals[i] - (pred_vals[i-1] if i > 0 else last_actual)
-                     for i in range(len(pred_vals))]
-        bar_colors = ['#2ed573' if c >= 0 else '#ff4757' for c in changes]
+        pred_vals  = predictions.flatten()
+        changes    = [pred_vals[i] - (pred_vals[i-1] if i > 0 else last_actual)
+                      for i in range(len(pred_vals))]
+        bar_colors = ['#276749' if c >= 0 else '#e53e3e' for c in changes]
 
         fig2 = go.Figure()
 
-        # Area fill
         fig2.add_trace(go.Scatter(
             x=[stock_data.index[-1]] + list(pred_dates),
             y=[last_actual] + list(pred_vals),
@@ -719,33 +770,31 @@ if st.session_state.prediction_results is not None:
             marker=dict(
                 size=10, color='#76b900',
                 symbol='diamond',
-                line=dict(color='#ffffff', width=2)
+                line=dict(color='#2e7d32', width=2)
             ),
             fill='tozeroy',
-            fillcolor='rgba(118,185,0,0.1)',
+            fillcolor='rgba(118,185,0,0.08)',
         ))
 
-        # Annotate each point
         for i, (d, v) in enumerate(zip(pred_dates, pred_vals)):
             fig2.add_annotation(
                 x=d, y=v,
                 text=f"${v:,.2f}",
                 showarrow=False,
                 yshift=18,
-                font=dict(size=11, color='#ffffff', family='Inter'),
-                bgcolor='rgba(22,33,62,0.9)',
+                font=dict(size=11, color='#1a1a1a', family='Inter'),
+                bgcolor='rgba(240,250,240,0.95)',
                 bordercolor='#76b900',
                 borderwidth=1,
                 borderpad=4
             )
 
-        # Last actual marker
         fig2.add_trace(go.Scatter(
             x=[stock_data.index[-1]],
             y=[last_actual],
             mode='markers',
             name='Last Actual',
-            marker=dict(size=12, color='#1e90ff', symbol='circle',
+            marker=dict(size=12, color='#2b6cb0', symbol='circle',
                         line=dict(color='#ffffff', width=2))
         ))
 
@@ -754,10 +803,10 @@ if st.session_state.prediction_results is not None:
             height=380,
             title=dict(
                 text=f"Next {stored_days} Business Day Forecast — NVDA",
-                font=dict(size=14, color='#ffffff'), x=0.01
+                font=dict(size=14, color='#1a1a1a'), x=0.01
             ),
         )
-        fig2.update_yaxes(tickprefix="$")
+        fig2.update_yaxes(tickprefix="$", tickfont=dict(color='#4a5568'))
 
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -768,7 +817,7 @@ if st.session_state.prediction_results is not None:
             marker_color=bar_colors,
             text=[f"{'+'if c>=0 else ''}{c:.2f}" for c in changes],
             textposition='outside',
-            textfont=dict(size=11, color='#ffffff'),
+            textfont=dict(size=11, color='#1a1a1a'),
             name='Daily Change',
         ))
         fig3.update_layout(
@@ -776,18 +825,18 @@ if st.session_state.prediction_results is not None:
             height=240,
             title=dict(
                 text="Predicted Day-over-Day Change ($)",
-                font=dict(size=13, color='#ffffff'), x=0.01
+                font=dict(size=13, color='#1a1a1a'), x=0.01
             ),
             showlegend=False,
         )
-        fig3.update_yaxes(tickprefix="$")
+        fig3.update_yaxes(tickprefix="$", tickfont=dict(color='#4a5568'))
         st.plotly_chart(fig3, use_container_width=True)
 
     # ── Prediction Table ──────
     with col_table:
         st.markdown("<br>", unsafe_allow_html=True)
 
-        pred_vals = predictions.flatten()
+        pred_vals  = predictions.flatten()
         all_prices = [last_actual] + list(pred_vals)
 
         table_rows_html = """
@@ -811,7 +860,7 @@ if st.session_state.prediction_results is not None:
 
             table_rows_html += f"""
             <div class="pred-row">
-                <div class="pred-cell" style="color:#a0aec0; font-size:0.8rem;">{i+1}</div>
+                <div class="pred-cell" style="color:#4a5568; font-size:0.8rem;">{i+1}</div>
                 <div class="pred-cell">{date_s}</div>
                 <div class="pred-cell" style="font-weight:700;">${price:,.2f}</div>
                 <div class="pred-cell {cls}">{icon} {sign}{change:.2f} ({sign}{pct:.1f}%)</div>
@@ -821,7 +870,6 @@ if st.session_state.prediction_results is not None:
         table_rows_html += "</div>"
         st.markdown(table_rows_html, unsafe_allow_html=True)
 
-        # Summary stats below table
         total_return = pred_vals[-1] - last_actual
         total_pct    = (total_return / last_actual) * 100
         max_price    = max(pred_vals)
@@ -829,27 +877,34 @@ if st.session_state.prediction_results is not None:
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="background:rgba(22,33,62,0.8); border:1px solid #0f3460; border-radius:12px; padding:20px;">
-            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#76b900; font-weight:600; margin-bottom:14px;">
+        <div style="background:#ffffff; border:1.5px solid #a5d6a7; border-radius:12px; padding:20px;">
+            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;
+                        color:#2e7d32; font-weight:600; margin-bottom:14px;">
                 📊 Forecast Summary
             </div>
         """, unsafe_allow_html=True)
 
         summary = [
-            ("Current Price",    format_price(last_actual)),
-            ("Target Price",     format_price(pred_vals[-1])),
-            ("Total Change",     f"{'+'if total_return>=0 else ''}{format_price(total_return)}"),
-            ("Total Return",     format_pct(total_pct)),
-            ("Period High",      format_price(max_price)),
-            ("Period Low",       format_price(min_price)),
+            ("Current Price", format_price(last_actual)),
+            ("Target Price",  format_price(pred_vals[-1])),
+            ("Total Change",  f"{'+'if total_return>=0 else ''}{format_price(total_return)}"),
+            ("Total Return",  format_pct(total_pct)),
+            ("Period High",   format_price(max_price)),
+            ("Period Low",    format_price(min_price)),
         ]
 
         for label, value in summary:
-            color = "#2ed573" if "+" in str(value) else ("#ff4757" if "-" in str(value) and label not in ["Current Price","Period High","Period Low"] else "#ffffff")
+            if "+" in str(value):
+                color = "#276749"
+            elif label not in ["Current Price", "Period High", "Period Low"] and "-" in str(value):
+                color = "#e53e3e"
+            else:
+                color = "#1a1a1a"
+
             st.markdown(f"""
             <div style="display:flex; justify-content:space-between; align-items:center;
-                        padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                <span style="color:#a0aec0; font-size:0.82rem;">{label}</span>
+                        padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.06);">
+                <span style="color:#4a5568; font-size:0.82rem;">{label}</span>
                 <span style="color:{color}; font-size:0.9rem; font-weight:600;">{value}</span>
             </div>
             """, unsafe_allow_html=True)
@@ -871,14 +926,12 @@ tab1, tab2, tab3 = st.tabs(["📈 Historical Prices", "📊 Return Distribution"
 with tab1:
     display_df = stock_data[['Open','High','Low','Close','Volume']].copy()
 
-    # Flatten MultiIndex columns if present
     if isinstance(display_df.columns, pd.MultiIndex):
         display_df.columns = [col[0] for col in display_df.columns]
 
     display_df = display_df.iloc[::-1]
     display_df.index = pd.to_datetime(display_df.index).strftime('%Y-%m-%d')
 
-    # Squeeze each column to 1D before rounding
     for c in ['Open','High','Low','Close']:
         display_df[c] = display_df[c].squeeze().round(2)
     display_df['Volume'] = display_df['Volume'].squeeze().astype(int)
@@ -891,7 +944,7 @@ with tab1:
 
 with tab2:
     close_series = stock_data['Close'].squeeze()
-    returns = close_series.pct_change().dropna() * 100
+    returns      = close_series.pct_change().dropna() * 100
 
     fig_dist = go.Figure()
     fig_dist.add_trace(go.Histogram(
@@ -901,15 +954,22 @@ with tab2:
         marker_color='#76b900',
         opacity=0.75,
     ))
-    fig_dist.add_vline(x=float(returns.mean()), line_dash='dash', line_color='#ffa502',
-                       annotation_text=f"Mean: {float(returns.mean()):.3f}%",
-                       annotation_font_color='#ffa502')
-    fig_dist.add_vline(x=0, line_dash='solid', line_color='rgba(255,255,255,0.3)')
+    fig_dist.add_vline(
+        x=float(returns.mean()),
+        line_dash='dash',
+        line_color='#d69e2e',
+        annotation_text=f"Mean: {float(returns.mean()):.3f}%",
+        annotation_font_color='#d69e2e'
+    )
+    fig_dist.add_vline(x=0, line_dash='solid', line_color='rgba(0,0,0,0.2)')
 
     fig_dist.update_layout(
         **PLOTLY_LAYOUT,
         height=400,
-        title=dict(text="Distribution of Daily Returns (%)", font=dict(size=14, color='#fff'), x=0.01),
+        title=dict(
+            text="Distribution of Daily Returns (%)",
+            font=dict(size=14, color='#1a1a1a'), x=0.01
+        ),
         xaxis_title="Daily Return (%)",
         yaxis_title="Frequency",
     )
@@ -917,10 +977,10 @@ with tab2:
 
     rc1, rc2, rc3, rc4 = st.columns(4)
     stats = [
-        (rc1, "Mean Return",  f"{float(returns.mean()):.3f}%"),
-        (rc2, "Std Dev",      f"{float(returns.std()):.3f}%"),
-        (rc3, "Best Day",     f"+{float(returns.max()):.2f}%"),
-        (rc4, "Worst Day",    f"{float(returns.min()):.2f}%"),
+        (rc1, "Mean Return", f"{float(returns.mean()):.3f}%"),
+        (rc2, "Std Dev",     f"{float(returns.std()):.3f}%"),
+        (rc3, "Best Day",    f"+{float(returns.max()):.2f}%"),
+        (rc4, "Worst Day",   f"{float(returns.min()):.2f}%"),
     ]
     for col, lbl, val in stats:
         col.markdown(f"""
@@ -939,27 +999,30 @@ with tab3:
     fig_dd.add_trace(go.Scatter(
         x=drawdown.index, y=drawdown.values,
         fill='tozeroy',
-        fillcolor='rgba(255,71,87,0.2)',
-        line=dict(color='#ff4757', width=1.5),
+        fillcolor='rgba(229,62,62,0.15)',
+        line=dict(color='#e53e3e', width=1.5),
         name='Drawdown %',
     ))
     fig_dd.update_layout(
         **PLOTLY_LAYOUT,
         height=380,
-        title=dict(text="Historical Drawdown from All-Time High (%)", font=dict(size=14, color='#fff'), x=0.01),
+        title=dict(
+            text="Historical Drawdown from All-Time High (%)",
+            font=dict(size=14, color='#1a1a1a'), x=0.01
+        ),
         yaxis_ticksuffix='%',
     )
     st.plotly_chart(fig_dd, use_container_width=True)
 
 # ── Footer ───────────────────
 st.markdown("""
-<hr style="border-color:#30363d; margin:40px 0 20px;">
-<div style="text-align:center; color:#a0aec0; font-size:0.8rem; padding-bottom:20px;">
+<hr style="border-color:#a5d6a7; margin:40px 0 20px;">
+<div style="text-align:center; color:#4a5568; font-size:0.8rem; padding-bottom:20px;">
     <div style="margin-bottom:6px;">
-        Built with <span style="color:#76b900; font-weight:600;">Streamlit</span> &amp;
-        <span style="color:#76b900; font-weight:600;">TensorFlow LSTM</span>
+        Built with <span style="color:#2e7d32; font-weight:600;">Streamlit</span> &amp;
+        <span style="color:#2e7d32; font-weight:600;">TensorFlow LSTM</span>
     </div>
-    <div style="color:#4a5568;">
+    <div style="color:#718096;">
         ⚠️ For educational &amp; research purposes only — not financial advice.
     </div>
 </div>
