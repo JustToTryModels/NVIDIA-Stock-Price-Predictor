@@ -50,9 +50,8 @@ st.markdown("""
 
     [data-testid="stSidebar"] .stMarkdown h1,
     [data-testid="stSidebar"] .stMarkdown h2,
-    [data-testid="stSidebar"] .stMarkdown h3,
-    [data-testid="stSidebar"] .stMarkdown h4 {
-        color: #76b900;
+    [data-testid="stSidebar"] .stMarkdown h3 {
+        color: #cbd5e1;
     }
 
     /* ── Metric Cards ── */
@@ -144,8 +143,8 @@ st.markdown("""
 
     /* ── Tabs ── */
     [data-testid="stTabs"] [data-baseweb="tab-list"] {
-        display: flex; /* <-- ADDED FOR RESPONSIVE SPREAD */
-        width: 100%;   /* <-- ADDED FOR RESPONSIVE SPREAD */
+        display: flex;
+        width: 100%;
         background: rgba(15, 20, 30, 0.8);
         border-radius: 12px;
         padding: 4px;
@@ -154,8 +153,8 @@ st.markdown("""
     }
 
     [data-testid="stTabs"] [data-baseweb="tab"] {
-        flex-grow: 1; /* <-- ADDED FOR RESPONSIVE SPREAD */
-        justify-content: center; /* <-- ADDED FOR CENTERING CONTENT */
+        flex-grow: 1;
+        justify-content: center;
         background: transparent;
         border-radius: 8px;
         color: #94a3b8 !important;
@@ -351,7 +350,7 @@ st.markdown("""
         50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
     }
 
-    /* ── Custom Download Button Style (from Code-2) ── */
+    /* ── Custom Download Button Style ── */
     [data-testid="stDownloadButton"] > button {
         background: linear-gradient(90deg, #ff8a00, #e52e71);
         color: white !important;
@@ -501,7 +500,6 @@ def predict_next_business_days(model, data, look_back=5, days=5):
 def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_days=90):
     df = stock_data.tail(lookback_days).copy()
 
-    # Flatten MultiIndex columns if present
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = [col[0] for col in df.columns]
 
@@ -513,7 +511,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         subplot_titles=('', '')
     )
 
-    # ── Candlestick ──
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(),
@@ -526,7 +523,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         whiskerwidth=0.5
     ), row=1, col=1)
 
-    # ── 20-day MA ──
     close_series = df['Close'].squeeze()
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
@@ -543,7 +539,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         opacity=0.85
     ), row=1, col=1)
 
-    # ── Prediction Shaded Zone ──
     if predictions is not None and prediction_dates is not None:
         pred_flat = predictions.flatten()
         last_actual_price = float(df['Close'].iloc[-1])
@@ -570,7 +565,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
                         line=dict(color='#0a0a0f', width=1.5)),
         ), row=1, col=1)
 
-    # ── Volume ──
     colors_vol = ['#4ade80' if c >= o else '#f87171'
                   for c, o in zip(close_series, df['Open'].squeeze())]
 
@@ -611,7 +605,6 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
 
     fig = go.Figure()
 
-    # Fill area
     fig.add_trace(go.Scatter(
         x=dates_full, y=prices_full,
         fill='tozeroy',
@@ -630,7 +623,6 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
 
-    # Reference line (last actual price)
     fig.add_hline(
         y=last_actual_price,
         line=dict(color='rgba(148,163,184,0.4)', width=1.5, dash='dot'),
@@ -789,7 +781,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("""
-    <div style='color:#475569; font-size:0.72rem; text-align:center; line-height:1.7;'>
+    <div style='color:#cbd5e1; font-size:0.72rem; text-align:center; line-height:1.7;'>
         ⚠️ For educational purposes only.<br>
         Not financial advice.<br><br>
         Model predictions are based on<br>
@@ -934,7 +926,6 @@ if st.session_state.prediction_results is not None:
     ts = r.get('timestamp', '')
     pred_flat = predictions.flatten()
 
-    # Flatten MultiIndex if needed
     if isinstance(stock_data.columns, pd.MultiIndex):
         stock_data_display = stock_data.copy()
         stock_data_display.columns = [col[0] for col in stock_data_display.columns]
@@ -946,7 +937,6 @@ if st.session_state.prediction_results is not None:
     pred_change = final_pred_price - last_actual_price
     pred_change_pct = (pred_change / last_actual_price) * 100
 
-    # ── Forecast Summary Cards ──
     st.markdown(f"""
     <div class='glass-card'>
         <div class='section-header'>
@@ -975,7 +965,6 @@ if st.session_state.prediction_results is not None:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ── Main Tabs ──
     tab1, tab2, tab3, tab4 = st.tabs([
         "📈  Price Action & Forecast",
         "🔮  Forecast Detail",
@@ -983,7 +972,6 @@ if st.session_state.prediction_results is not None:
         "📋  Historical Data"
     ])
 
-    # ─── Tab 1: Candlestick + Forecast overlay ───
     with tab1:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         fig_candle = build_candlestick_chart(
@@ -1005,7 +993,6 @@ if st.session_state.prediction_results is not None:
         </div>
         """, unsafe_allow_html=True)
 
-    # ─── Tab 2: Forecast Detail ───
     with tab2:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -1017,7 +1004,6 @@ if st.session_state.prediction_results is not None:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Prediction Table
         pred_df = pd.DataFrame({
             'Business Day': [f"Day {i+1}" for i in range(stored_num_days)],
             'Date': [d.strftime('%A, %b %d %Y') for d in prediction_dates],
@@ -1052,7 +1038,6 @@ if st.session_state.prediction_results is not None:
         </div>
         """, unsafe_allow_html=True)
 
-    # ─── Tab 3: Returns Analysis ───
     with tab3:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -1066,7 +1051,6 @@ if st.session_state.prediction_results is not None:
             'displayModeBar': False, 'displaylogo': False
         })
 
-        # Stats row
         if isinstance(stock_data_display.columns, pd.MultiIndex):
             close_s = stock_data_display['Close'].squeeze()
         else:
@@ -1094,7 +1078,6 @@ if st.session_state.prediction_results is not None:
             worst = ret_1y.min()
             st.metric("Worst Day", f"{worst:.2f}%")
 
-    # ─── Tab 4: Historical Data ───
     with tab4:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -1106,13 +1089,11 @@ if st.session_state.prediction_results is not None:
         """, unsafe_allow_html=True)
 
         disp = stock_data_display.sort_index(ascending=False).copy()
-        # Round numeric columns
         for col in disp.select_dtypes(include=np.number).columns:
             disp[col] = disp[col].round(4)
 
         st.dataframe(disp, height=480, use_container_width=True)
 
-        # Download button
         csv = disp.to_csv().encode('utf-8')
         col_dl1, col_dl2, col_dl3 = st.columns([1, 1, 1])
         with col_dl2:
@@ -1125,7 +1106,6 @@ if st.session_state.prediction_results is not None:
             )
 
 else:
-    # ── Placeholder State ──
     st.markdown("""
     <div class='glass-card' style='text-align:center; padding: 60px 40px;'>
         <div style='font-size:4rem; margin-bottom:16px;'>📡</div>
@@ -1138,7 +1118,6 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # Show basic chart even without prediction
     with st.spinner("Loading market data..."):
         stock_data_preview = get_stock_data(STOCK)
         if stock_data_preview is not None and not stock_data_preview.empty:
