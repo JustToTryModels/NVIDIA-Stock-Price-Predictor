@@ -5,220 +5,245 @@ import yfinance as yf
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import load_model
 from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import plotly.graph_objects as go
 
 # ==============================
-# 🔹 Load Model (Cached)
+# ⚙️ PAGE CONFIG
+# ==============================
+st.set_page_config(
+    page_title="Stock Predictor AI",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ==============================
+# 🎨 CUSTOM CSS
+# ==============================
+st.markdown("""
+<style>
+    .main {
+        background-color: #0e1117;
+    }
+    h1, h2, h3 {
+        color: #ffffff;
+    }
+    .stButton > button {
+        background: linear-gradient(90deg, #ff8a00, #e52e71);
+        color: white;
+        border-radius: 12px;
+        padding: 0.6em 1.2em;
+        font-weight: bold;
+        border: none;
+    }
+    .stDataFrame {
+        border-radius: 10px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ==============================
+# 📦 LOAD MODEL (CACHED)
 # ==============================
 @st.cache_resource
 def load_nvidia_model():
-    model_file = 'LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras'
-    try:
-        model = load_model(model_file)
-        return model
-    except Exception as e:
-        st.error(f"❌ Error loading model: {e}")
-        return None
-
-model = load_nvidia_model()
+    model_path = 'LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras'
+    return load_model(model_path)
 
 # ==============================
-# 🔹 Fetch Stock Data (Cached)
+# 📊 FETCH DATA (CACHED)
 # ==============================
 @st.cache_data
-def get_stock_data(ticker='NVDA'):
-    try:
-        data = yf.download(ticker, period='max')
-        return data
-    except Exception as e:
-        st.error(f"❌ Error fetching stock data: {e}")
-        return None
+def get_stock_data(ticker):
+    return yf.download(ticker, period="max")
 
 # ==============================
-# 🔹 Generate Business Days
+# 📅 BUSINESS DAYS
 # ==============================
-def generate_business_days(start_date, num_days):
-    return pd.bdate_range(start=start_date, periods=num_days).tolist()
+def generate_business_days(start_date, n_days):
+    return pd.bdate_range(start=start_date, periods=n_days)
 
 # ==============================
-# 🔹 Prediction Function
+# 🤖 PREDICTION FUNCTION
 # ==============================
-def predict_next_business_days(model, data, look_back=5, days=5):
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    data_scaled = scaler.fit_transform(data)
+def predict_future(model, data, look_back=5, days=5):
+    scaler = MinMaxScaler()
+    scaled = scaler.fit_transform(data)
 
-    last_sequence = data_scaled[-look_back:]
-    predictions = []
+    last_seq = scaled[-look_back:]
+    preds = []
 
     for _ in range(days):
-        X_input = np.reshape(last_sequence, (1, look_back, 1))
-        prediction = model.predict(X_input, verbose=0)
-        predictions.append(prediction[0, 0])
+        x = np.reshape(last_seq, (1, look_back, 1))
+        pred = model.predict(x, verbose=0)[0][0]
+        preds.append(pred)
+        last_seq = np.append(last_seq[1:], [[pred]], axis=0)
 
-        last_sequence = np.append(last_sequence[1:], prediction, axis=0)
-
-    predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
-    return predictions
-
-# ==============================
-# 🔹 Custom Button Styling
-# ==============================
-st.markdown(
-    """
-    <style>
-    .stButton > button {
-        background: linear-gradient(90deg, #ff8a00, #e52e71);
-        color: white !important;
-        border: none;
-        border-radius: 25px;
-        padding: 10px 20px;
-        font-size: 1.2em !important;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 5px;
-        width: auto;
-        min-width: 100px;
-    }
-
-    .stButton > button:hover {
-        transform: scale(1.05);
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .stButton > button:active {
-        transform: scale(0.98);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+    preds = scaler.inverse_transform(np.array(preds).reshape(-1, 1))
+    return preds
 
 # ==============================
-# 🔹 UI Layout
+# 📌 LOAD MODEL
 # ==============================
-st.markdown("<h1 style='text-align: center; font-size: 49px;'>Stock-Price-Predictor 📈📉💰</h1>", unsafe_allow_html=True)
-
-st.markdown(
-    """
-    <div style="display: flex; justify-content: center;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png" width="560">
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-stock = 'NVDA'
+with st.spinner("Loading AI model..."):
+    model = load_nvidia_model()
 
 # ==============================
-# 🔹 User Input
+# 🧭 SIDEBAR CONTROLS
 # ==============================
-num_days = st.slider("Select number of business days to forecast", 1, 30, 5)
+st.sidebar.title("⚙️ Controls")
 
-current_date = datetime.now().strftime('%Y-%m-%d')
-st.write(f"📅 Current Date: {current_date}")
+ticker = st.sidebar.text_input("Stock Ticker", "NVDA")
+days = st.sidebar.slider("Forecast Days", 1, 30, 5)
+run = st.sidebar.button("🚀 Run Prediction")
 
-# ==============================
-# 🔹 Session State Init
-# ==============================
-if 'prediction_results' not in st.session_state:
-    st.session_state.prediction_results = None
+st.title("📈 AI Stock Price Predictor")
+st.caption("LSTM-based forecasting powered by TensorFlow + Streamlit")
 
 # ==============================
-# 🔹 Predict Button
+# 📊 LOAD DATA
 # ==============================
-if st.button(f'Predict Next {num_days} Days Stock Prices for {stock}', key='forecast-button'):
-
+if run:
     if model is None:
-        st.error("❌ Model not loaded. Cannot make predictions.")
-    else:
-        stock_data = get_stock_data(stock)
+        st.error("Model failed to load.")
+        st.stop()
 
-        if stock_data is None or stock_data.empty:
-            st.error("❌ Failed to load stock data.")
-        else:
-            close_prices = stock_data['Close'].values.reshape(-1, 1)
-            dates = stock_data.index
+    with st.spinner("Fetching stock data..."):
+        data = get_stock_data(ticker)
 
-            predictions = predict_next_business_days(
-                model,
-                close_prices,
-                look_back=5,
-                days=num_days
-            )
+    if data is None or data.empty:
+        st.error("Failed to load stock data.")
+        st.stop()
 
-            last_date = dates[-1]
-            prediction_dates = generate_business_days(last_date + timedelta(days=1), num_days)
+    close = data["Close"].values.reshape(-1, 1)
+    dates = data.index
 
-            st.session_state.prediction_results = {
-                'stock_data': stock_data,
-                'close_prices': close_prices,
-                'dates': dates,
-                'predictions': predictions,
-                'prediction_dates': prediction_dates,
-                'num_days': num_days,
-                'stock': stock
-            }
+    with st.spinner("Running predictions..."):
+        preds = predict_future(model, close, look_back=5, days=days)
+
+    pred_dates = generate_business_days(dates[-1] + timedelta(days=1), days)
+
+    # ==============================
+    # 📦 STORE STATE
+    # ==============================
+    st.session_state["results"] = {
+        "data": data,
+        "close": close,
+        "dates": dates,
+        "preds": preds,
+        "pred_dates": pred_dates
+    }
 
 # ==============================
-# 🔹 Display Results
+# 📊 DISPLAY RESULTS
 # ==============================
-if st.session_state.prediction_results is not None:
+if "results" in st.session_state:
 
-    results = st.session_state.prediction_results
+    r = st.session_state["results"]
 
-    stock_data = results['stock_data']
-    close_prices = results['close_prices']
-    dates = results['dates']
-    predictions = results['predictions']
-    prediction_dates = results['prediction_dates']
-    stored_num_days = results['num_days']
-    stored_stock = results['stock']
+    data = r["data"]
+    close = r["close"]
+    dates = r["dates"]
+    preds = r["preds"]
+    pred_dates = r["pred_dates"]
 
-    # 📊 Historical Data
-    st.markdown(f"### Historical Data for {stored_stock}")
-    st.dataframe(stock_data, height=400, width=1000)
+    last_price = float(close[-1])
+    next_price = float(preds[-1][0])
+    change = next_price - last_price
 
-    st.write(" ")
+    # ==============================
+    # 📌 METRICS
+    # ==============================
+    col1, col2, col3 = st.columns(3)
 
-    # 📈 Combined Plot
-    fig, ax = plt.subplots()
-    ax.plot(dates, close_prices, label='Historical Prices')
-    ax.plot(prediction_dates, predictions, label='Predicted Prices', linestyle='--', color='red')
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Price')
-    ax.set_title(f'{stored_stock} Stock Prices', fontsize=10, fontweight='bold')
-    ax.legend()
-    st.pyplot(fig)
+    col1.metric("Last Close Price", f"${last_price:.2f}")
+    col2.metric("Predicted Last Price", f"${next_price:.2f}")
+    col3.metric("Expected Change", f"${change:.2f}")
 
-    st.write(" ")
+    st.divider()
 
-    # 📉 Prediction Only Plot
-    fig2, ax2 = plt.subplots()
-    ax2.plot(prediction_dates, predictions, marker='o', color='blue')
-    ax2.set_xlabel('Date')
-    ax2.set_ylabel('Predicted Price')
-    ax2.set_title(f'Next {stored_num_days} Business Days Prediction ({stored_stock})')
+    # ==============================
+    # 📊 TABS
+    # ==============================
+    tab1, tab2, tab3 = st.tabs(["📁 Data", "📈 Forecast", "📉 Charts"])
 
-    ax2.xaxis.set_major_locator(mdates.DayLocator(interval=1))
-    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    # ==============================
+    # TAB 1 - DATA
+    # ==============================
+    with tab1:
+        st.subheader(f"{ticker} Historical Data")
+        st.dataframe(data, use_container_width=True)
 
-    plt.xticks(rotation=45)
-    st.pyplot(fig2)
+        csv = data.to_csv().encode("utf-8")
+        st.download_button("⬇️ Download Data", csv, f"{ticker}_data.csv", "text/csv")
 
-    st.write(" ")
+    # ==============================
+    # TAB 2 - FORECAST TABLE
+    # ==============================
+    with tab2:
+        forecast_df = pd.DataFrame({
+            "Date": pred_dates,
+            "Predicted Price": preds.flatten()
+        })
 
-    # 📋 Table Output
-    prediction_df = pd.DataFrame({
-        'Date': prediction_dates,
-        'Predicted Price': predictions.flatten()
-    })
+        st.subheader("Future Predictions")
+        st.dataframe(forecast_df, use_container_width=True)
 
-    st.markdown(f"### Predicted Prices ({stored_num_days} Days)")
-    st.dataframe(prediction_df, width=600)
+        csv2 = forecast_df.to_csv(index=False).encode("utf-8")
+        st.download_button("⬇️ Download Forecast", csv2, "forecast.csv", "text/csv")
+
+    # ==============================
+    # TAB 3 - CHARTS (INTERACTIVE)
+    # ==============================
+    with tab3:
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(
+            x=dates,
+            y=close.flatten(),
+            name="Historical",
+            line=dict(color="blue")
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=pred_dates,
+            y=preds.flatten(),
+            name="Forecast",
+            line=dict(color="red", dash="dash")
+        ))
+
+        fig.update_layout(
+            title=f"{ticker} Stock Price Prediction",
+            template="plotly_dark",
+            xaxis_title="Date",
+            yaxis_title="Price",
+            hovermode="x unified"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Zoomed forecast chart
+        fig2 = go.Figure()
+
+        fig2.add_trace(go.Scatter(
+            x=pred_dates,
+            y=preds.flatten(),
+            mode="lines+markers",
+            name="Forecast"
+        ))
+
+        fig2.update_layout(
+            title="Zoomed Forecast",
+            template="plotly_dark",
+            xaxis_title="Date",
+            yaxis_title="Price"
+        )
+
+        st.plotly_chart(fig2, use_container_width=True)
+
+# ==============================
+# FOOTER
+# ==============================
+st.markdown("---")
+st.caption("⚠️ This tool is for educational purposes only. Not financial advice.")
