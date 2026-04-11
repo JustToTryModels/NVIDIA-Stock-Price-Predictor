@@ -50,7 +50,8 @@ st.markdown("""
 
     [data-testid="stSidebar"] .stMarkdown h1,
     [data-testid="stSidebar"] .stMarkdown h2,
-    [data-testid="stSidebar"] .stMarkdown h3 {
+    [data-testid="stSidebar"] .stMarkdown h3,
+    [data-testid="stSidebar"] .stMarkdown h4 {
         color: #cbd5e1;
     }
 
@@ -377,6 +378,16 @@ st.markdown("""
         transform: translateY(0px);
         box-shadow: 0 2px 8px rgba(229, 46, 113, 0.4);
     }
+
+    /* ── Sidebar widget labels (Forecast Horizon, Chart History Window) ── */
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] label,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stSlider label,
+    [data-testid="stSidebar"] .stSelectbox label {
+        color: #cbd5e1 !important;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
