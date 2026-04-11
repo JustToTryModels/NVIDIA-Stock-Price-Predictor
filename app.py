@@ -345,6 +345,38 @@ st.markdown("""
         0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
         50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
     }
+
+    /* ── Download Button Specific Style (Code-2 style) ── */
+    .download-button-container .stButton > button {
+        background: linear-gradient(90deg, #ff8a00, #e52e71) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 25px !important;
+        padding: 10px 20px !important;
+        font-size: 1.2em !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-top: 5px !important;
+        width: auto !important;
+        min-width: 100px !important;
+        font-family: 'Tiempos', 'Tiempos Text', Georgia, serif !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        box-shadow: none !important;
+    }
+
+    .download-button-container .stButton > button:hover {
+        transform: scale(1.05) !important;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .download-button-container .stButton > button:active {
+        transform: scale(0.98) !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1083,6 +1115,7 @@ if st.session_state.prediction_results is not None:
         csv = disp.to_csv().encode('utf-8')
         col_dl1, col_dl2, col_dl3 = st.columns([1, 1, 1])
         with col_dl2:
+            st.markdown('<div class="download-button-container">', unsafe_allow_html=True)
             st.download_button(
                 label="⬇️ Download CSV",
                 data=csv,
@@ -1090,6 +1123,7 @@ if st.session_state.prediction_results is not None:
                 mime='text/csv',
                 use_container_width=True
             )
+            st.markdown('</div>', unsafe_allow_html=True)
 
 else:
     # ── Placeholder State ──
