@@ -1,3 +1,4 @@
+# Code-1
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -131,39 +132,6 @@ st.markdown("""
     .stButton > button:active {
         transform: translateY(0px);
         box-shadow: 0 2px 8px rgba(118, 185, 0, 0.3);
-    }
-
-    /* ── Download Button ── */
-    [data-testid="stDownloadButton"] > button {
-        background: linear-gradient(90deg, #ff8a00, #e52e71) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 25px !important;
-        padding: 10px 20px !important;
-        font-size: 1.2em !important;
-        font-weight: bold !important;
-        cursor: pointer !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        margin-top: 5px !important;
-        width: auto !important;
-        min-width: 100px !important;
-        text-transform: none !important;
-        letter-spacing: normal !important;
-        box-shadow: none !important;
-    }
-
-    [data-testid="stDownloadButton"] > button:hover {
-        transform: scale(1.05) !important;
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3) !important;
-        color: white !important;
-        background: linear-gradient(90deg, #ff8a00, #e52e71) !important;
-    }
-
-    [data-testid="stDownloadButton"] > button:active {
-        transform: scale(0.98) !important;
     }
 
     /* ── Expander ── */
@@ -377,6 +345,34 @@ st.markdown("""
     @keyframes pulse-green {
         0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
         50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
+    }
+
+    /* ── Custom Download Button Style (from Code-2) ── */
+    [data-testid="stDownloadButton"] > button {
+        background: linear-gradient(90deg, #ff8a00, #e52e71);
+        color: white !important;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 32px;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 16px rgba(229, 46, 113, 0.4);
+        width: 100%;
+        text-transform: uppercase;
+    }
+
+    [data-testid="stDownloadButton"] > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(255, 138, 0, 0.5);
+        background: linear-gradient(90deg, #ff9e23, #fa4a88);
+    }
+
+    [data-testid="stDownloadButton"] > button:active {
+        transform: translateY(0px);
+        box-shadow: 0 2px 8px rgba(229, 46, 113, 0.4);
     }
 </style>
 """, unsafe_allow_html=True)
