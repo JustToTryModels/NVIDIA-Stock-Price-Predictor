@@ -31,26 +31,24 @@ st.markdown("""
     /* ── Root Variables ── */
     :root {
         --nvidia-green:   #76b900;
-        --nvidia-dark:    #ffffff;
-        --card-bg:        #f0f4e8;
-        --card-border:    #c8e6a0;
+        --nvidia-dark:    #1a1a2e;
+        --card-bg:        #16213e;
+        --card-border:    #0f3460;
         --accent:         #76b900;
-        --text-primary:   #1a1a1a;
-        --text-secondary: #4a5568;
-        --danger:         #e53e3e;
-        --warning:        #d97706;
-        --success:        #38a169;
+        --text-primary:   #ffffff;
+        --text-secondary: #a0aec0;
+        --danger:         #ff4757;
+        --warning:        #ffa502;
+        --success:        #2ed573;
     }
 
     /* ── Global Base ── */
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
     }
 
     .main {
-        background: linear-gradient(135deg, #ffffff 0%, #f7faf0 50%, #eef5e0 100%);
+        background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
         min-height: 100vh;
     }
 
@@ -59,25 +57,20 @@ st.markdown("""
 
     /* ── Sidebar ── */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f7faf0 0%, #eef5e0 100%);
-        border-right: 1px solid #c8e6a0;
+        background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+        border-right: 1px solid #30363d;
     }
 
     [data-testid="stSidebar"] .stMarkdown h1,
     [data-testid="stSidebar"] .stMarkdown h2,
     [data-testid="stSidebar"] .stMarkdown h3 {
-        color: #4a7c00 !important;
-    }
-
-    /* Sidebar text */
-    [data-testid="stSidebar"] * {
-        color: #1a1a1a !important;
+        color: #76b900 !important;
     }
 
     /* ── Metric Cards ── */
     .metric-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f0f7e0 100%);
-        border: 1px solid #c8e6a0;
+        background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+        border: 1px solid #0f3460;
         border-radius: 16px;
         padding: 20px 24px;
         text-align: center;
@@ -104,24 +97,24 @@ st.markdown("""
         font-weight: 600;
         letter-spacing: 1px;
         text-transform: uppercase;
-        color: #4a5568;
+        color: #a0aec0;
         margin-bottom: 8px;
     }
 
     .metric-value {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #1a1a1a;
+        color: #ffffff;
         line-height: 1.2;
     }
 
-    .metric-delta-positive { font-size: 0.85rem; color: #38a169; font-weight: 600; margin-top: 4px; }
-    .metric-delta-negative { font-size: 0.85rem; color: #e53e3e; font-weight: 600; margin-top: 4px; }
+    .metric-delta-positive { font-size: 0.85rem; color: #2ed573; font-weight: 600; margin-top: 4px; }
+    .metric-delta-negative { font-size: 0.85rem; color: #ff4757; font-weight: 600; margin-top: 4px; }
 
     /* ── Hero Banner ── */
     .hero-banner {
-        background: linear-gradient(135deg, #ffffff 0%, #f0f7e0 40%, #e6f2cc 100%);
-        border: 1px solid #c8e6a0;
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 40%, #0d2137 100%);
+        border: 1px solid #30363d;
         border-radius: 20px;
         padding: 40px;
         margin-bottom: 32px;
@@ -134,14 +127,14 @@ st.markdown("""
         position: absolute;
         top: -50%; right: -10%;
         width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(118,185,0,0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(118,185,0,0.08) 0%, transparent 70%);
         pointer-events: none;
     }
 
     .hero-title {
         font-size: 3rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #4a7c00, #76b900, #1a1a1a);
+        background: linear-gradient(90deg, #76b900, #a8e063, #ffffff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -151,7 +144,7 @@ st.markdown("""
 
     .hero-subtitle {
         font-size: 1.1rem;
-        color: #4a5568;
+        color: #a0aec0;
         font-weight: 400;
         margin: 0 0 20px 0;
     }
@@ -160,13 +153,13 @@ st.markdown("""
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(118,185,0,0.12);
-        border: 1px solid rgba(118,185,0,0.4);
+        background: rgba(118,185,0,0.15);
+        border: 1px solid rgba(118,185,0,0.3);
         border-radius: 20px;
         padding: 6px 14px;
         font-size: 0.8rem;
         font-weight: 600;
-        color: #4a7c00;
+        color: #76b900;
         margin-right: 8px;
         margin-bottom: 8px;
     }
@@ -182,20 +175,20 @@ st.markdown("""
     .section-header-line {
         flex: 1;
         height: 1px;
-        background: linear-gradient(90deg, #c8e6a0, transparent);
+        background: linear-gradient(90deg, #30363d, transparent);
     }
 
     .section-title {
         font-size: 1.3rem;
         font-weight: 700;
-        color: #1a1a1a;
+        color: #ffffff;
         white-space: nowrap;
     }
 
     /* ── Prediction Table ── */
     .pred-table-wrapper {
-        background: linear-gradient(135deg, #ffffff 0%, #f0f7e0 100%);
-        border: 1px solid #c8e6a0;
+        background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+        border: 1px solid #0f3460;
         border-radius: 16px;
         overflow: hidden;
     }
@@ -205,23 +198,23 @@ st.markdown("""
         grid-template-columns: 50px 1fr 1fr 1fr;
         gap: 0;
         padding: 14px 20px;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
         align-items: center;
         transition: background 0.2s;
     }
 
-    .pred-row:hover { background: rgba(118,185,0,0.07); }
-    .pred-row.header { background: rgba(118,185,0,0.12); font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: #4a7c00; }
+    .pred-row:hover { background: rgba(118,185,0,0.05); }
+    .pred-row.header { background: rgba(118,185,0,0.1); font-weight: 700; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: #76b900; }
     .pred-row:last-child { border-bottom: none; }
 
-    .pred-cell { color: #1a1a1a; font-size: 0.9rem; }
-    .pred-cell.positive { color: #38a169; font-weight: 600; }
-    .pred-cell.negative { color: #e53e3e; font-weight: 600; }
+    .pred-cell { color: #ffffff; font-size: 0.9rem; }
+    .pred-cell.positive { color: #2ed573; font-weight: 600; }
+    .pred-cell.negative { color: #ff4757; font-weight: 600; }
 
     /* ── Predict Button ── */
     .stButton > button {
         background: linear-gradient(135deg, #76b900 0%, #a8e063 100%) !important;
-        color: #ffffff !important;
+        color: #0a0a0f !important;
         border: none !important;
         border-radius: 12px !important;
         padding: 14px 32px !important;
@@ -254,18 +247,18 @@ st.markdown("""
         padding: 16px 20px;
         margin: 16px 0;
         font-size: 0.9rem;
-        color: #4a5568;
+        color: #a0aec0;
         line-height: 1.6;
     }
 
     .warning-box {
-        background: rgba(217,119,6,0.08);
-        border-left: 4px solid #d97706;
+        background: rgba(255,165,2,0.08);
+        border-left: 4px solid #ffa502;
         border-radius: 0 12px 12px 0;
         padding: 16px 20px;
         margin: 16px 0;
         font-size: 0.9rem;
-        color: #4a5568;
+        color: #a0aec0;
         line-height: 1.6;
     }
 
@@ -273,7 +266,7 @@ st.markdown("""
     [data-testid="stDataFrame"] {
         border-radius: 12px;
         overflow: hidden;
-        border: 1px solid #c8e6a0;
+        border: 1px solid #30363d;
     }
 
     /* ── Progress & Spinner ── */
@@ -282,17 +275,17 @@ st.markdown("""
 
     /* ── Tabs ── */
     .stTabs [data-baseweb="tab-list"] {
-        background: #f0f7e0;
+        background: #161b22;
         border-radius: 12px;
         padding: 4px;
         gap: 4px;
-        border: 1px solid #c8e6a0;
+        border: 1px solid #30363d;
     }
 
     .stTabs [data-baseweb="tab"] {
         background: transparent;
         border-radius: 8px;
-        color: #4a5568;
+        color: #a0aec0;
         font-weight: 600;
         padding: 10px 20px;
         border: none;
@@ -300,38 +293,23 @@ st.markdown("""
 
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, #76b900, #a8e063) !important;
-        color: #ffffff !important;
+        color: #0a0a0f !important;
     }
 
     /* ── Selectbox / Inputs ── */
     .stSelectbox [data-baseweb="select"] > div,
     .stMultiSelect [data-baseweb="select"] > div {
-        background: #ffffff;
-        border: 1px solid #c8e6a0;
+        background: #161b22;
+        border: 1px solid #30363d;
         border-radius: 10px;
-        color: #1a1a1a;
+        color: #ffffff;
     }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f0f7e0; }
-    ::-webkit-scrollbar-thumb { background: #c8e6a0; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #76b900; }
-
-    /* ── General text override ── */
-    p, span, div, label, li {
-        color: #1a1a1a;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        color: #1a1a1a !important;
-    }
-
-    /* Streamlit default widget labels */
-    .stSlider label, .stSelectbox label, .stMultiSelect label,
-    .stToggle label, [data-testid="stWidgetLabel"] {
-        color: #1a1a1a !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -395,28 +373,23 @@ def predict_next_business_days(model, data, look_back=5, days=5):
 # 🔹 Plotly Theme Helper
 # ==============================
 PLOTLY_LAYOUT = dict(
-    paper_bgcolor='rgba(255,255,255,0)',
-    plot_bgcolor='rgba(247,250,240,0.6)',
-    font=dict(family='Inter', color='#1a1a1a'),
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(family='Inter', color='#a0aec0'),
     xaxis=dict(
-        gridcolor='rgba(0,0,0,0.06)',
-        zerolinecolor='rgba(0,0,0,0.1)',
-        showgrid=True,
-        color='#1a1a1a',
-        tickfont=dict(color='#1a1a1a'),
+        gridcolor='rgba(255,255,255,0.05)',
+        zerolinecolor='rgba(255,255,255,0.1)',
+        showgrid=True
     ),
     yaxis=dict(
-        gridcolor='rgba(0,0,0,0.06)',
-        zerolinecolor='rgba(0,0,0,0.1)',
-        showgrid=True,
-        color='#1a1a1a',
-        tickfont=dict(color='#1a1a1a'),
+        gridcolor='rgba(255,255,255,0.05)',
+        zerolinecolor='rgba(255,255,255,0.1)',
+        showgrid=True
     ),
     legend=dict(
-        bgcolor='rgba(240,247,224,0.9)',
-        bordercolor='rgba(0,0,0,0.1)',
-        borderwidth=1,
-        font=dict(color='#1a1a1a'),
+        bgcolor='rgba(22,33,62,0.8)',
+        bordercolor='rgba(255,255,255,0.1)',
+        borderwidth=1
     ),
     margin=dict(l=0, r=0, t=40, b=0),
     hovermode='x unified',
@@ -434,10 +407,10 @@ with st.sidebar:
     st.markdown("""
     <div style="text-align:center; padding: 20px 0 10px;">
         <div style="font-size:2.5rem;">🤖</div>
-        <div style="font-size:1.1rem; font-weight:700; color:#4a7c00; margin-top:8px;">AI Stock Predictor</div>
-        <div style="font-size:0.75rem; color:#4a5568; margin-top:4px;">LSTM Neural Network</div>
+        <div style="font-size:1.1rem; font-weight:700; color:#76b900; margin-top:8px;">AI Stock Predictor</div>
+        <div style="font-size:0.75rem; color:#a0aec0; margin-top:4px;">LSTM Neural Network</div>
     </div>
-    <hr style="border-color:#c8e6a0; margin:16px 0;">
+    <hr style="border-color:#30363d; margin:16px 0;">
     """, unsafe_allow_html=True)
 
     st.markdown("### ⚙️ Forecast Settings")
@@ -469,17 +442,17 @@ with st.sidebar:
     else:
         ma_periods = []
 
-    st.markdown("<hr style='border-color:#c8e6a0; margin:16px 0;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color:#30363d; margin:16px 0;'>", unsafe_allow_html=True)
 
     # Model Info card
     st.markdown("""
-    <div style="background:rgba(118,185,0,0.08); border:1px solid rgba(118,185,0,0.3); border-radius:12px; padding:16px;">
-        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#4a7c00; font-weight:600; margin-bottom:10px;">🧠 Model Info</div>
-        <div style="font-size:0.8rem; color:#4a5568; line-height:1.8;">
-            <div>Architecture &nbsp;→&nbsp; <span style="color:#1a1a1a;">LSTM</span></div>
-            <div>Look-back &nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#1a1a1a;">5 Days</span></div>
-            <div>Units &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#1a1a1a;">150</span></div>
-            <div>RMSE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#4a7c00; font-weight:700;">$1.32</span></div>
+    <div style="background:rgba(118,185,0,0.08); border:1px solid rgba(118,185,0,0.2); border-radius:12px; padding:16px;">
+        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#76b900; font-weight:600; margin-bottom:10px;">🧠 Model Info</div>
+        <div style="font-size:0.8rem; color:#a0aec0; line-height:1.8;">
+            <div>Architecture &nbsp;→&nbsp; <span style="color:#fff;">LSTM</span></div>
+            <div>Look-back &nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#fff;">5 Days</span></div>
+            <div>Units &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#fff;">150</span></div>
+            <div>RMSE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp; <span style="color:#76b900; font-weight:700;">$1.32</span></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -493,9 +466,9 @@ with st.sidebar:
     )
 
     st.markdown("""
-    <div style="margin-top:24px; padding:12px; background:rgba(217,119,6,0.08); border-radius:10px; border:1px solid rgba(217,119,6,0.25);">
-        <div style="font-size:0.7rem; color:#d97706; font-weight:600; margin-bottom:4px;">⚠️ DISCLAIMER</div>
-        <div style="font-size:0.7rem; color:#4a5568; line-height:1.5;">
+    <div style="margin-top:24px; padding:12px; background:rgba(255,165,2,0.08); border-radius:10px; border:1px solid rgba(255,165,2,0.2);">
+        <div style="font-size:0.7rem; color:#ffa502; font-weight:600; margin-bottom:4px;">⚠️ DISCLAIMER</div>
+        <div style="font-size:0.7rem; color:#a0aec0; line-height:1.5;">
             This tool is for educational purposes only. Predictions are not financial advice. Always consult a qualified advisor before investing.
         </div>
     </div>
@@ -510,7 +483,7 @@ st.markdown("""
 <div class="hero-banner">
     <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png"
-             style="height:48px;">
+             style="height:48px; filter: brightness(1.1);">
         <div>
             <div class="hero-title">Stock Price Predictor</div>
             <div class="hero-subtitle">AI-powered forecasting using Long Short-Term Memory neural networks</div>
@@ -624,21 +597,21 @@ fig.add_trace(go.Candlestick(
     close=plot_data['Close'].squeeze(),
     low=plot_data['Low'].squeeze(),
     name='OHLC',
-    increasing_line_color='#38a169',
-    decreasing_line_color='#e53e3e',
-    increasing_fillcolor='rgba(56,161,105,0.3)',
-    decreasing_fillcolor='rgba(229,62,62,0.3)',
+    increasing_line_color='#2ed573',
+    decreasing_line_color='#ff4757',
+    increasing_fillcolor='rgba(46,213,115,0.3)',
+    decreasing_fillcolor='rgba(255,71,87,0.3)',
 ), row=1, col=1)
 
 # Moving Averages
-ma_colors = {20: '#d97706', 50: '#2563eb', 100: '#7c3aed', 200: '#db2777'}
+ma_colors = {20: '#ffa502', 50: '#1e90ff', 100: '#a55eea', 200: '#ff6b81'}
 for period in ma_periods:
     if len(plot_data) >= period:
         ma_vals = plot_data['Close'].squeeze().rolling(period).mean()
         fig.add_trace(go.Scatter(
             x=plot_data.index, y=ma_vals,
             name=f'MA{period}',
-            line=dict(color=ma_colors.get(period, '#1a1a1a'), width=1.5, dash='dot'),
+            line=dict(color=ma_colors.get(period, '#ffffff'), width=1.5, dash='dot'),
             opacity=0.85,
         ), row=1, col=1)
 
@@ -648,6 +621,7 @@ if st.session_state.prediction_results is not None:
     pdts  = res['prediction_dates']
     pvals = res['predictions'].flatten()
 
+    # Bridge from last actual to first prediction
     bridge_x = [plot_data.index[-1]] + list(pdts)
     bridge_y = [latest_close]        + list(pvals)
 
@@ -657,11 +631,12 @@ if st.session_state.prediction_results is not None:
         line=dict(color='#76b900', width=3, dash='dash'),
         mode='lines+markers',
         marker=dict(size=8, color='#76b900', symbol='diamond',
-                    line=dict(color='#1a1a1a', width=1.5)),
+                    line=dict(color='#ffffff', width=1.5)),
         fill='tonexty',
-        fillcolor='rgba(118,185,0,0.07)',
+        fillcolor='rgba(118,185,0,0.05)',
     ), row=1, col=1)
 
+    # Confidence band (±2% illustrative)
     upper = [v * 1.02 for v in bridge_y]
     lower = [v * 0.98 for v in bridge_y]
 
@@ -679,8 +654,8 @@ if st.session_state.prediction_results is not None:
 # Volume bars
 if show_volume:
     colors = [
-        '#38a169' if float(plot_data['Close'].iloc[i]) >= float(plot_data['Open'].iloc[i])
-        else '#e53e3e'
+        '#2ed573' if float(plot_data['Close'].iloc[i]) >= float(plot_data['Open'].iloc[i])
+        else '#ff4757'
         for i in range(len(plot_data))
     ]
     fig.add_trace(go.Bar(
@@ -696,13 +671,13 @@ fig.update_layout(
     height=580 if show_volume else 460,
     title=dict(
         text=f"NVDA — {'Candlestick' if n_rows>1 else 'Price'} Chart  •  Last {history_days} Days",
-        font=dict(size=15, color='#1a1a1a'), x=0.01
+        font=dict(size=15, color='#ffffff'), x=0.01
     ),
     xaxis_rangeslider_visible=False,
 )
-fig.update_yaxes(title_text="Price (USD)", row=1, col=1, tickprefix="$", color='#1a1a1a')
+fig.update_yaxes(title_text="Price (USD)", row=1, col=1, tickprefix="$")
 if show_volume:
-    fig.update_yaxes(title_text="Volume", row=2, col=1, color='#1a1a1a')
+    fig.update_yaxes(title_text="Volume", row=2, col=1)
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -730,10 +705,11 @@ if st.session_state.prediction_results is not None:
         pred_vals = predictions.flatten()
         changes   = [pred_vals[i] - (pred_vals[i-1] if i > 0 else last_actual)
                      for i in range(len(pred_vals))]
-        bar_colors = ['#38a169' if c >= 0 else '#e53e3e' for c in changes]
+        bar_colors = ['#2ed573' if c >= 0 else '#ff4757' for c in changes]
 
         fig2 = go.Figure()
 
+        # Area fill
         fig2.add_trace(go.Scatter(
             x=[stock_data.index[-1]] + list(pred_dates),
             y=[last_actual] + list(pred_vals),
@@ -743,32 +719,34 @@ if st.session_state.prediction_results is not None:
             marker=dict(
                 size=10, color='#76b900',
                 symbol='diamond',
-                line=dict(color='#1a1a1a', width=2)
+                line=dict(color='#ffffff', width=2)
             ),
             fill='tozeroy',
             fillcolor='rgba(118,185,0,0.1)',
         ))
 
+        # Annotate each point
         for i, (d, v) in enumerate(zip(pred_dates, pred_vals)):
             fig2.add_annotation(
                 x=d, y=v,
                 text=f"${v:,.2f}",
                 showarrow=False,
                 yshift=18,
-                font=dict(size=11, color='#1a1a1a', family='Inter'),
-                bgcolor='rgba(240,247,224,0.95)',
+                font=dict(size=11, color='#ffffff', family='Inter'),
+                bgcolor='rgba(22,33,62,0.9)',
                 bordercolor='#76b900',
                 borderwidth=1,
                 borderpad=4
             )
 
+        # Last actual marker
         fig2.add_trace(go.Scatter(
             x=[stock_data.index[-1]],
             y=[last_actual],
             mode='markers',
             name='Last Actual',
-            marker=dict(size=12, color='#2563eb', symbol='circle',
-                        line=dict(color='#1a1a1a', width=2))
+            marker=dict(size=12, color='#1e90ff', symbol='circle',
+                        line=dict(color='#ffffff', width=2))
         ))
 
         fig2.update_layout(
@@ -776,20 +754,21 @@ if st.session_state.prediction_results is not None:
             height=380,
             title=dict(
                 text=f"Next {stored_days} Business Day Forecast — NVDA",
-                font=dict(size=14, color='#1a1a1a'), x=0.01
+                font=dict(size=14, color='#ffffff'), x=0.01
             ),
         )
-        fig2.update_yaxes(tickprefix="$", color='#1a1a1a')
+        fig2.update_yaxes(tickprefix="$")
 
         st.plotly_chart(fig2, use_container_width=True)
 
+        # Change bar chart
         fig3 = go.Figure(go.Bar(
             x=[d.strftime('%b %d') for d in pred_dates],
             y=changes,
             marker_color=bar_colors,
             text=[f"{'+'if c>=0 else ''}{c:.2f}" for c in changes],
             textposition='outside',
-            textfont=dict(size=11, color='#1a1a1a'),
+            textfont=dict(size=11, color='#ffffff'),
             name='Daily Change',
         ))
         fig3.update_layout(
@@ -797,11 +776,11 @@ if st.session_state.prediction_results is not None:
             height=240,
             title=dict(
                 text="Predicted Day-over-Day Change ($)",
-                font=dict(size=13, color='#1a1a1a'), x=0.01
+                font=dict(size=13, color='#ffffff'), x=0.01
             ),
             showlegend=False,
         )
-        fig3.update_yaxes(tickprefix="$", color='#1a1a1a')
+        fig3.update_yaxes(tickprefix="$")
         st.plotly_chart(fig3, use_container_width=True)
 
     # ── Prediction Table ──────
@@ -832,7 +811,7 @@ if st.session_state.prediction_results is not None:
 
             table_rows_html += f"""
             <div class="pred-row">
-                <div class="pred-cell" style="color:#4a5568; font-size:0.8rem;">{i+1}</div>
+                <div class="pred-cell" style="color:#a0aec0; font-size:0.8rem;">{i+1}</div>
                 <div class="pred-cell">{date_s}</div>
                 <div class="pred-cell" style="font-weight:700;">${price:,.2f}</div>
                 <div class="pred-cell {cls}">{icon} {sign}{change:.2f} ({sign}{pct:.1f}%)</div>
@@ -842,6 +821,7 @@ if st.session_state.prediction_results is not None:
         table_rows_html += "</div>"
         st.markdown(table_rows_html, unsafe_allow_html=True)
 
+        # Summary stats below table
         total_return = pred_vals[-1] - last_actual
         total_pct    = (total_return / last_actual) * 100
         max_price    = max(pred_vals)
@@ -849,8 +829,8 @@ if st.session_state.prediction_results is not None:
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="background:#ffffff; border:1px solid #c8e6a0; border-radius:12px; padding:20px;">
-            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#4a7c00; font-weight:600; margin-bottom:14px;">
+        <div style="background:rgba(22,33,62,0.8); border:1px solid #0f3460; border-radius:12px; padding:20px;">
+            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:#76b900; font-weight:600; margin-bottom:14px;">
                 📊 Forecast Summary
             </div>
         """, unsafe_allow_html=True)
@@ -865,11 +845,11 @@ if st.session_state.prediction_results is not None:
         ]
 
         for label, value in summary:
-            color = "#38a169" if "+" in str(value) else ("#e53e3e" if "-" in str(value) and label not in ["Current Price","Period High","Period Low"] else "#1a1a1a")
+            color = "#2ed573" if "+" in str(value) else ("#ff4757" if "-" in str(value) and label not in ["Current Price","Period High","Period Low"] else "#ffffff")
             st.markdown(f"""
             <div style="display:flex; justify-content:space-between; align-items:center;
-                        padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.06);">
-                <span style="color:#4a5568; font-size:0.82rem;">{label}</span>
+                        padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                <span style="color:#a0aec0; font-size:0.82rem;">{label}</span>
                 <span style="color:{color}; font-size:0.9rem; font-weight:600;">{value}</span>
             </div>
             """, unsafe_allow_html=True)
@@ -891,12 +871,14 @@ tab1, tab2, tab3 = st.tabs(["📈 Historical Prices", "📊 Return Distribution"
 with tab1:
     display_df = stock_data[['Open','High','Low','Close','Volume']].copy()
 
+    # Flatten MultiIndex columns if present
     if isinstance(display_df.columns, pd.MultiIndex):
         display_df.columns = [col[0] for col in display_df.columns]
 
     display_df = display_df.iloc[::-1]
     display_df.index = pd.to_datetime(display_df.index).strftime('%Y-%m-%d')
 
+    # Squeeze each column to 1D before rounding
     for c in ['Open','High','Low','Close']:
         display_df[c] = display_df[c].squeeze().round(2)
     display_df['Volume'] = display_df['Volume'].squeeze().astype(int)
@@ -919,15 +901,15 @@ with tab2:
         marker_color='#76b900',
         opacity=0.75,
     ))
-    fig_dist.add_vline(x=float(returns.mean()), line_dash='dash', line_color='#d97706',
+    fig_dist.add_vline(x=float(returns.mean()), line_dash='dash', line_color='#ffa502',
                        annotation_text=f"Mean: {float(returns.mean()):.3f}%",
-                       annotation_font_color='#d97706')
-    fig_dist.add_vline(x=0, line_dash='solid', line_color='rgba(0,0,0,0.2)')
+                       annotation_font_color='#ffa502')
+    fig_dist.add_vline(x=0, line_dash='solid', line_color='rgba(255,255,255,0.3)')
 
     fig_dist.update_layout(
         **PLOTLY_LAYOUT,
         height=400,
-        title=dict(text="Distribution of Daily Returns (%)", font=dict(size=14, color='#1a1a1a'), x=0.01),
+        title=dict(text="Distribution of Daily Returns (%)", font=dict(size=14, color='#fff'), x=0.01),
         xaxis_title="Daily Return (%)",
         yaxis_title="Frequency",
     )
@@ -957,27 +939,27 @@ with tab3:
     fig_dd.add_trace(go.Scatter(
         x=drawdown.index, y=drawdown.values,
         fill='tozeroy',
-        fillcolor='rgba(229,62,62,0.15)',
-        line=dict(color='#e53e3e', width=1.5),
+        fillcolor='rgba(255,71,87,0.2)',
+        line=dict(color='#ff4757', width=1.5),
         name='Drawdown %',
     ))
     fig_dd.update_layout(
         **PLOTLY_LAYOUT,
         height=380,
-        title=dict(text="Historical Drawdown from All-Time High (%)", font=dict(size=14, color='#1a1a1a'), x=0.01),
+        title=dict(text="Historical Drawdown from All-Time High (%)", font=dict(size=14, color='#fff'), x=0.01),
         yaxis_ticksuffix='%',
     )
     st.plotly_chart(fig_dd, use_container_width=True)
 
 # ── Footer ───────────────────
 st.markdown("""
-<hr style="border-color:#c8e6a0; margin:40px 0 20px;">
-<div style="text-align:center; color:#4a5568; font-size:0.8rem; padding-bottom:20px;">
+<hr style="border-color:#30363d; margin:40px 0 20px;">
+<div style="text-align:center; color:#a0aec0; font-size:0.8rem; padding-bottom:20px;">
     <div style="margin-bottom:6px;">
-        Built with <span style="color:#4a7c00; font-weight:600;">Streamlit</span> &amp;
-        <span style="color:#4a7c00; font-weight:600;">TensorFlow LSTM</span>
+        Built with <span style="color:#76b900; font-weight:600;">Streamlit</span> &amp;
+        <span style="color:#76b900; font-weight:600;">TensorFlow LSTM</span>
     </div>
-    <div style="color:#718096;">
+    <div style="color:#4a5568;">
         ⚠️ For educational &amp; research purposes only — not financial advice.
     </div>
 </div>
