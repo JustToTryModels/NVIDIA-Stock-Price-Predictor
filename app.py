@@ -6,251 +6,201 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import load_model
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-import plotly.express as px
+from plotly.subplots import make_subplots
 
 # ==============================
-# PAGE CONFIG
+# 🔹 PAGE CONFIG
 # ==============================
 st.set_page_config(
-    page_title="NVIDIA Stock Predictor Pro",
+    page_title="NVIDIA AI Stock Forecaster",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ==============================
-# CUSTOM CSS
+# 🔹 CUSTOM CSS
 # ==============================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-
 .main > div { padding-top: 1rem; }
-.block-container { padding-top: 2rem; }
-
-.header {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-    padding: 2rem;
-    border-radius: 16px;
-    border: 1px solid #2a2a2a;
-    margin-bottom: 2rem;
-    text-align: center;
-}
-.header h1 {
-    background: linear-gradient(90deg, #76B900, #a8ff60);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-size: 3rem;
-    font-weight: 700;
-    margin: 0;
-}
-.metric-card {
-    background: #111;
-    border: 1px solid #2a2a2a;
-    padding: 1.2rem;
-    border-radius: 12px;
-}
 .stButton > button {
-    background: linear-gradient(90deg, #76B900, #5a8f00);
-    color: white;
+    background: linear-gradient(90deg, #76b900 0%, #00c3ff 100%);
+    color: white !important;
     border: none;
-    border-radius: 10px;
-    padding: 0.75rem 2rem;
+    border-radius: 12px;
+    padding: 12px 28px;
+    font-size: 1.05em !important;
     font-weight: 600;
-    font-size: 1.05rem;
-    transition: all 0.2s;
-    width: 100%;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0,195,255,0.2);
 }
-.stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(118,185,0,0.3);
+.stButton > button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,195,255,0.3); }
+.metric-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# LOAD MODEL
+# 🔹 LOAD MODEL
 # ==============================
 @st.cache_resource
 def load_nvidia_model():
     try:
         return load_model('LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras')
     except Exception as e:
-        st.warning(f"Model not found — using demo forecast. ({e})")
+        st.error(f"Model not found. Place it in LSTM_Model/ folder")
         return None
 
 model = load_nvidia_model()
+RMSE = 1.32
 
 # ==============================
-# FETCH DATA
+# 🔹 DATA
 # ==============================
 @st.cache_data(ttl=3600)
 def get_stock_data(ticker='NVDA', period='2y'):
     data = yf.download(ticker, period=period, auto_adjust=True, progress=False)
+    if data.empty: return None
     return data
 
-# ==============================
-# PREDICTION
-# ==============================
-def predict_next_days(model, data, look_back=5, days=5):
-    if model is None: # fallback demo
-        last = data[-1][0]
-        trend = np.mean(np.diff(data[-20:].flatten()))
-        preds = [last + trend*(i+1) + np.random.normal(0, last*0.01) for i in range(days)]
-        return np.array(preds).reshape(-1,1)
+def generate_business_days(start_date, num_days):
+    return pd.bdate_range(start=start_date, periods=num_days)
 
+def predict_next_days(model, data, look_back=5, days=5):
     scaler = MinMaxScaler()
     data_scaled = scaler.fit_transform(data)
     last_seq = data_scaled[-look_back:]
     preds = []
-    for _ in range(days):
-        X = np.reshape(last_seq, (1, look_back, 1))
-        p = model.predict(X, verbose=0)[0,0]
-        preds.append(p)
-        last_seq = np.append(last_seq[1:], [[p]], axis=0)
-    return scaler.inverse_transform(np.array(preds).reshape(-1,1))
-
-def business_days(start, n):
-    return pd.bdate_range(start=start, periods=n)
+    prog = st.progress(0, text="Running LSTM inference...")
+    for i in range(days):
+        X = last_seq.reshape(1, look_back, 1)
+        pred = model.predict(X, verbose=0)[0,0]
+        preds.append(pred)
+        last_seq = np.append(last_seq[1:], [[pred]], axis=0)
+        prog.progress((i+1)/days)
+    prog.empty()
+    return scaler.inverse_transform(np.array(preds).reshape(-1,1)).flatten()
 
 # ==============================
-# SIDEBAR
+# 🔹 HEADER
+# ==============================
+col_logo, col_title = st.columns([1, 6])
+with col_logo:
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png", width=120)
+with col_title:
+    st.markdown("<h1 style='margin-bottom:0'>NVIDIA AI Stock Forecaster</h1>", unsafe_allow_html=True)
+    st.caption("LSTM Deep Learning • Powered by TensorFlow & yfinance")
+
+# ==============================
+# 🔹 SIDEBAR
 # ==============================
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/320px-NVIDIA_logo.svg.png", width=180)
-    st.markdown("### ⚙️ Configuration")
-    ticker = st.selectbox("Ticker", ["NVDA", "AAPL", "MSFT", "TSLA", "AMD"], index=0)
+    st.header("⚙️ Settings")
+    ticker = st.selectbox("Ticker", ["NVDA","AAPL","MSFT","TSLA","AMD","GOOGL"], index=0)
+    if ticker != "NVDA":
+        st.warning("Model trained only on NVDA. Results for other tickers will be inaccurate.")
+    
     num_days = st.slider("Forecast days", 1, 30, 5)
-    look_back = st.slider("Look-back window", 5, 60, 5)
-    hist_period = st.selectbox("Historical period", ["6mo", "1y", "2y", "5y", "max"], index=2)
-    st.markdown("---")
-    st.caption(f"Last refresh: {datetime.now().strftime('%H:%M:%S')}")
+    look_back = st.slider("Look-back window", 3, 20, 5)
+    show_ci = st.toggle("Show confidence interval (±$1.32)", value=True)
+    period = st.selectbox("History", ["6mo","1y","2y","5y","max"], index=2)
+    
+    st.divider()
+    st.caption(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    run_forecast = st.button(f"🚀 Predict {num_days} Days", use_container_width=True, type="primary")
 
 # ==============================
-# HEADER
+# 🔹 LOAD DATA
 # ==============================
-st.markdown('<div class="header"><h1>Stock Predictor Pro</h1><p style="color:#aaa; margin-top:0.5rem;">LSTM-powered forecasting with interactive analytics</p></div>', unsafe_allow_html=True)
+data = get_stock_data(ticker, period)
 
-# ==============================
-# LOAD DATA
-# ==============================
-with st.spinner(f"Loading {ticker} data..."):
-    stock_data = get_stock_data(ticker, hist_period)
-
-if stock_data.empty:
-    st.error("Failed to load data")
+if data is None:
     st.stop()
 
-close_prices = stock_data['Close'].values.reshape(-1,1)
-current_price = float(close_prices[-1][0])
-prev_price = float(close_prices[-2][0])
-change = current_price - prev_price
-pct_change = change/prev_price*100
+close = data['Close'].values.reshape(-1,1)
+dates = data.index
+current_price = float(close[-1][0])
+prev_price = float(close[-2][0])
+change_pct = (current_price - prev_price) / prev_price * 100
 
 # METRICS
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Current Price", f"${current_price:.2f}", f"{pct_change:+.2f}%")
-c2.metric("52W High", f"${stock_data['High'].max():.2f}")
-c3.metric("52W Low", f"${stock_data['Low'].min():.2f}")
-c4.metric("Volume", f"{stock_data['Volume'].iloc[-1]/1e6:.1f}M")
+m1,m2,m3,m4 = st.columns(4)
+m1.metric("Current Price", f"${current_price:.2f}", f"{change_pct:+.2f}%")
+m2.metric("Volume", f"{int(data['Volume'].iloc[-1]):,}")
+m3.metric("52W High", f"${data['High'].tail(252).max():.2f}")
+m4.metric("52W Low", f"${data['Low'].tail(252).min():.2f}")
 
 # ==============================
-# TABS
+# 🔹 TABS
 # ==============================
-tab1, tab2, tab3 = st.tabs(["🔮 Forecast", "📊 Historical", "ℹ️ Model"])
+tab1, tab2, tab3 = st.tabs(["🔮 Forecast", "📊 Historical Analysis", "ℹ️ Model Info"])
 
 with tab1:
-    if st.button(f'Generate {num_days}-Day Forecast', type="primary"):
-        with st.spinner("Running LSTM inference..."):
-            preds = predict_next_days(model, close_prices, look_back, num_days)
-            pred_dates = business_days(stock_data.index[-1] + timedelta(days=1), num_days)
-
+    if run_forecast and model is not None:
+        with st.spinner("Fetching data & predicting..."):
+            preds = predict_next_days(model, close, look_back, num_days)
+            pred_dates = generate_business_days(dates[-1] + timedelta(days=1), num_days)
+            
             st.session_state['preds'] = preds
             st.session_state['pred_dates'] = pred_dates
-            st.success("Forecast complete!")
-            st.balloons()
+            st.toast("Prediction complete!", icon="✅")
 
     if 'preds' in st.session_state:
         preds = st.session_state['preds']
         pred_dates = st.session_state['pred_dates']
 
-        # Interactive Plotly Chart
+        # Interactive Chart
         fig = go.Figure()
-        # Historical (last 180 days)
-        hist_df = stock_data.tail(180)
-        fig.add_trace(go.Scatter(
-            x=hist_df.index, y=hist_df['Close'],
-            name='Historical', line=dict(color='#76B900', width=2)
-        ))
-        # Forecast
-        fig.add_trace(go.Scatter(
-            x=pred_dates, y=preds.flatten(),
-            name='Forecast', mode='lines+markers',
-            line=dict(color='#e52e71', width=3, dash='dash'),
-            marker=dict(size=8)
-        ))
-        # Confidence band (±2%)
-        upper = preds.flatten()*1.02
-        lower = preds.flatten()*0.98
-        fig.add_trace(go.Scatter(x=pred_dates, y=upper, line=dict(width=0), showlegend=False, hoverinfo='skip'))
-        fig.add_trace(go.Scatter(x=pred_dates, y=lower, fill='tonexty', fillcolor='rgba(229,46,113,0.15)', line=dict(width=0), showlegend=False, name='Confidence'))
+        fig.add_trace(go.Scatter(x=dates[-90:], y=close[-90:].flatten(), name="History", line=dict(color="#00c3ff", width=2)))
+        fig.add_trace(go.Scatter(x=pred_dates, y=preds, name="Forecast", line=dict(color="#76b900", width=3, dash="dash"), mode="lines+markers"))
+        
+        if show_ci:
+            fig.add_trace(go.Scatter(x=pred_dates, y=preds+RMSE, fill=None, mode='lines', line_color='rgba(0,0,0,0)', showlegend=False))
+            fig.add_trace(go.Scatter(x=pred_dates, y=preds-RMSE, fill='tonexty', mode='lines', line_color='rgba(0,0,0,0)', name='±RMSE', fillcolor='rgba(118,185,0,0.2)'))
 
-        fig.update_layout(
-            template='plotly_dark',
-            height=500,
-            hovermode='x unified',
-            legend=dict(orientation='h', y=1.02),
-            margin=dict(l=20, r=20, t=40, b=20),
-            title=f"{ticker} — {num_days} Business Day Forecast"
-        )
+        fig.update_layout(height=450, template="plotly_dark", hovermode="x unified", margin=dict(l=20,r=20,t=40,b=20), legend=dict(orientation="h", y=1.02))
         st.plotly_chart(fig, use_container_width=True)
 
-        # Prediction table
-        pred_df = pd.DataFrame({
-            'Date': pred_dates,
-            'Predicted Close': preds.flatten(),
-            'Change %': np.insert((np.diff(preds.flatten())/preds.flatten()[:-1]*100), 0, (preds[0][0]-current_price)/current_price*100)
-        })
-        pred_df['Predicted Close'] = pred_df['Predicted Close'].map('${:,.2f}'.format)
-        pred_df['Change %'] = pred_df['Change %'].map('{:+.2f}%'.format)
-
-        col1, col2 = st.columns([2,1])
+        col1, col2 = st.columns([1.2,1])
         with col1:
-            st.dataframe(pred_df, use_container_width=True, hide_index=True)
+            df_pred = pd.DataFrame({"Date": pred_dates, "Predicted Close": np.round(preds,2), "Lower": np.round(preds-RMSE,2), "Upper": np.round(preds+RMSE,2)})
+            st.dataframe(df_pred, use_container_width=True, hide_index=True,
+                column_config={"Predicted Close": st.column_config.NumberColumn(format="$%.2f")}
+            )
         with col2:
-            final_pred = float(st.session_state['preds'][-1][0])
-            st.metric("Target Price", f"${final_pred:.2f}", f"{(final_pred-current_price)/current_price*100:+.2f}%")
-            csv = pd.DataFrame({'Date': pred_dates, 'Price': preds.flatten()}).to_csv(index=False).encode()
-            st.download_button("📥 Download CSV", csv, f"{ticker}_forecast.csv", "text/csv", use_container_width=True)
+            st.markdown("#### Summary")
+            st.write(f"**Expected {num_days}-day move:** ${(preds[-1]-current_price):+.2f} ({(preds[-1]/current_price-1)*100:+.2f}%)")
+            st.write(f"**Target Price:** ${preds[-1]:.2f}")
+            st.download_button("📥 Download CSV", df_pred.to_csv(index=False), f"{ticker}_forecast_{datetime.now().date()}.csv", use_container_width=True)
+    else:
+        st.info("👈 Click 'Predict' in the sidebar to generate forecast")
 
 with tab2:
-    # Candlestick
-    fig2 = go.Figure(data=[go.Candlestick(
-        x=stock_data.index,
-        open=stock_data['Open'],
-        high=stock_data['High'],
-        low=stock_data['Low'],
-        close=stock_data['Close'],
-        increasing_line_color='#76B900',
-        decreasing_line_color='#e52e71'
-    )])
-    fig2.update_layout(template='plotly_dark', height=500, xaxis_rangeslider_visible=False)
+    fig2 = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.7,0.3], vertical_spacing=0.05)
+    fig2.add_trace(go.Candlestick(x=dates, open=data['Open'], high=data['High'], low=data['Low'], close=data['Close'], name="OHLC"), row=1, col=1)
+    fig2.add_trace(go.Scatter(x=dates, y=data['Close'].rolling(20).mean(), name="MA20", line=dict(color="#ff8a00")), row=1, col=1)
+    fig2.add_trace(go.Bar(x=dates, y=data['Volume'], name="Volume", marker_color="#00c3ff"), row=2, col=1)
+    fig2.update_layout(height=600, template="plotly_dark", xaxis_rangeslider_visible=False, margin=dict(l=20,r=20,t=20,b=20))
     st.plotly_chart(fig2, use_container_width=True)
-
-    st.dataframe(stock_data.tail(100).sort_index(ascending=False), use_container_width=True, height=350)
 
 with tab3:
     st.markdown("""
-    ### Model Architecture
-    - **Type:** LSTM Neural Network
-    - **Look-back:** 5 days → 150 units
-    - **Trained on:** NVDA historical data
-    - **RMSE:** 1.32
-    - **Features:** MinMax scaling, business-day aware forecasting
-
-    > This app uses `yfinance` for live data and caches results for 1 hour. Replace the model path with your trained `.keras` file for production use.
+    **Model:** LSTM Sequential  
+    **Architecture:** Look-back=5, Units=150  
+    **Training RMSE:** 1.32  
+    **Framework:** TensorFlow Keras  
+    **Data Source:** Yahoo Finance (auto-adjusted close)
+    
+    > ⚠️ This is for educational purposes only. Not financial advice.
     """)
-    st.code("LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras", language="bash")
 
-st.markdown("<div style='text-align:center; color:#666; padding:2rem 0;'>Built with Streamlit • Data: Yahoo Finance • Not financial advice</div>", unsafe_allow_html=True)
+st.divider()
+st.caption("Built with Streamlit • Model: LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras")
