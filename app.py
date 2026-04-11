@@ -133,6 +133,39 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(118, 185, 0, 0.3);
     }
 
+    /* ── Download Button ── */
+    [data-testid="stDownloadButton"] > button {
+        background: linear-gradient(90deg, #ff8a00, #e52e71) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 25px !important;
+        padding: 10px 20px !important;
+        font-size: 1.2em !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-top: 5px !important;
+        width: auto !important;
+        min-width: 100px !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stDownloadButton"] > button:hover {
+        transform: scale(1.05) !important;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3) !important;
+        color: white !important;
+        background: linear-gradient(90deg, #ff8a00, #e52e71) !important;
+    }
+
+    [data-testid="stDownloadButton"] > button:active {
+        transform: scale(0.98) !important;
+    }
+
     /* ── Expander ── */
     [data-testid="stExpander"] {
         background: rgba(22, 27, 39, 0.6);
