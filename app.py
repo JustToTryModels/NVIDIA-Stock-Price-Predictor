@@ -6,11 +6,12 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import load_model
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import plotly.express as px
+from plotly.subplots import make_subplots
+import time
 
 # ==============================
-# 🔹 Page Configuration
+# 🎨 Page Configuration
 # ==============================
 st.set_page_config(
     page_title="NVIDIA Stock Predictor",
@@ -20,430 +21,214 @@ st.set_page_config(
 )
 
 # ==============================
-# 🔹 Global CSS Styling
+# 🎨 Custom CSS Styling
 # ==============================
 st.markdown("""
-<style>
-    /* ── Import Font ── */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-    /* ── Root & Background ── */
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+    <style>
+    /* Import Google Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+    
+    /* Global Styles */
+    * {
+        font-family: 'Poppins', sans-serif;
     }
-
+    
+    /* Main Background */
     .stApp {
-        background: linear-gradient(135deg, #0a0a0f 0%, #0d1117 50%, #0a0e1a 100%);
-        color: #e2e8f0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-
-    /* ── Hide Streamlit Branding ── */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-
-    /* ── Sidebar ── */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0d1117 0%, #161b27 100%);
-        border-right: 1px solid rgba(118, 185, 0, 0.2);
-    }
-
-    [data-testid="stSidebar"] .stMarkdown h1,
-    [data-testid="stSidebar"] .stMarkdown h2,
-    [data-testid="stSidebar"] .stMarkdown h3 {
-        color: #76b900;
-    }
-
-    /* ── Metric Cards ── */
-    [data-testid="stMetric"] {
-        background: linear-gradient(135deg, rgba(22, 27, 39, 0.9), rgba(15, 20, 30, 0.9));
-        border: 1px solid rgba(118, 185, 0, 0.25);
-        border-radius: 16px;
-        padding: 20px 24px;
+    
+    /* Main Container */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(10px);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
-    [data-testid="stMetric"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 32px rgba(118, 185, 0, 0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+    
+    /* Header Styling */
+    h1 {
+        background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        text-align: center;
+        padding: 1rem 0;
+        font-size: 3.5rem !important;
     }
-
-    [data-testid="stMetricLabel"] {
-        color: #94a3b8 !important;
-        font-size: 0.8rem !important;
-        font-weight: 500 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+    
+    h2, h3 {
+        color: #667eea;
+        font-weight: 600;
     }
-
+    
+    /* Metric Cards */
     [data-testid="stMetricValue"] {
-        color: #f1f5f9 !important;
-        font-size: 1.6rem !important;
-        font-weight: 700 !important;
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
-
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #555;
+    }
+    
     [data-testid="stMetricDelta"] {
-        font-size: 0.85rem !important;
-        font-weight: 500 !important;
+        font-size: 0.9rem;
     }
-
-    /* ── Slider ── */
-    [data-testid="stSlider"] > div > div > div > div {
-        background: #76b900 !important;
-    }
-
-    .stSlider [data-baseweb="slider"] {
-        padding-top: 10px;
-    }
-
-    /* ── DataFrames ── */
-    [data-testid="stDataFrame"] {
-        border: 1px solid rgba(118, 185, 0, 0.2);
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    /* ── Buttons ── */
+    
+    /* Custom Button */
     .stButton > button {
-        background: linear-gradient(135deg, #76b900 0%, #5a8f00 100%);
-        color: #0a0a0f !important;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white !important;
         border: none;
-        border-radius: 12px;
-        padding: 14px 32px;
-        font-size: 1rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.03em;
+        border-radius: 50px;
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem !important;
+        font-weight: 600;
         cursor: pointer;
-        transition: all 0.25s ease;
-        box-shadow: 0 4px 16px rgba(118, 185, 0, 0.3);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         width: 100%;
-        text-transform: uppercase;
     }
-
+    
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 28px rgba(118, 185, 0, 0.5);
-        background: linear-gradient(135deg, #8fd400 0%, #76b900 100%);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
     }
-
+    
     .stButton > button:active {
-        transform: translateY(0px);
-        box-shadow: 0 2px 8px rgba(118, 185, 0, 0.3);
+        transform: translateY(0);
     }
-
-    /* ── Expander ── */
-    [data-testid="stExpander"] {
-        background: rgba(22, 27, 39, 0.6);
-        border: 1px solid rgba(118, 185, 0, 0.2);
-        border-radius: 12px;
-        backdrop-filter: blur(10px);
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
     }
-
-    /* ── Tabs ── */
-    [data-testid="stTabs"] [data-baseweb="tab-list"] {
-        background: rgba(15, 20, 30, 0.8);
-        border-radius: 12px;
-        padding: 4px;
-        gap: 4px;
-        border: 1px solid rgba(118, 185, 0, 0.15);
+    
+    [data-testid="stSidebar"] * {
+        color: white !important;
     }
-
-    [data-testid="stTabs"] [data-baseweb="tab"] {
-        background: transparent;
-        border-radius: 8px;
-        color: #94a3b8 !important;
-        font-weight: 500;
-        padding: 10px 24px;
-        transition: all 0.2s ease;
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem;
     }
-
-    [data-testid="stTabs"] [aria-selected="true"] {
-        background: linear-gradient(135deg, #76b900, #5a8f00) !important;
-        color: #0a0a0f !important;
-        font-weight: 700 !important;
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: transparent;
+        border-radius: 10px 10px 0 0;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        font-size: 1.1rem;
     }
-
-    /* ── Spinner ── */
-    [data-testid="stSpinner"] {
-        color: #76b900;
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
     }
-
-    /* ── Select Box ── */
-    [data-testid="stSelectbox"] > div > div {
-        background: rgba(22, 27, 39, 0.9);
-        border: 1px solid rgba(118, 185, 0, 0.3);
+    
+    /* Info Cards */
+    .info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin: 1rem 0;
+    }
+    
+    /* Dataframe Styling */
+    .dataframe {
         border-radius: 10px;
-        color: #e2e8f0;
-    }
-
-    /* ── Divider ── */
-    hr {
-        border: none;
-        border-top: 1px solid rgba(118, 185, 0, 0.15);
-        margin: 24px 0;
-    }
-
-    /* ── Custom Card ── */
-    .glass-card {
-        background: linear-gradient(135deg, rgba(22, 27, 39, 0.85), rgba(15, 20, 30, 0.85));
-        border: 1px solid rgba(118, 185, 0, 0.2);
-        border-radius: 20px;
-        padding: 28px 32px;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.04);
-        margin-bottom: 24px;
-    }
-
-    .glass-card h2, .glass-card h3 {
-        color: #f1f5f9;
-        margin-bottom: 8px;
-    }
-
-    /* ── Hero Banner ── */
-    .hero-banner {
-        background: linear-gradient(135deg, rgba(118, 185, 0, 0.08) 0%, rgba(22, 27, 39, 0.95) 60%, rgba(15, 20, 30, 0.95) 100%);
-        border: 1px solid rgba(118, 185, 0, 0.3);
-        border-radius: 24px;
-        padding: 40px 48px;
-        margin-bottom: 32px;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-        position: relative;
         overflow: hidden;
     }
-
-    .hero-banner::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(118, 185, 0, 0.08) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    /* ── Section Header ── */
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .section-header h3 {
-        color: #f1f5f9;
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
-    .section-badge {
-        background: rgba(118, 185, 0, 0.15);
-        border: 1px solid rgba(118, 185, 0, 0.4);
-        color: #76b900;
-        font-size: 0.7rem;
-        font-weight: 700;
-        padding: 3px 10px;
-        border-radius: 20px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-    }
-
-    /* ── Info Box ── */
-    .info-box {
-        background: rgba(118, 185, 0, 0.06);
-        border-left: 3px solid #76b900;
-        border-radius: 0 10px 10px 0;
-        padding: 14px 18px;
-        margin: 12px 0;
-        color: #cbd5e1;
-        font-size: 0.9rem;
-        line-height: 1.6;
-    }
-
-    .warning-box {
-        background: rgba(251, 191, 36, 0.06);
-        border-left: 3px solid #fbbf24;
-        border-radius: 0 10px 10px 0;
-        padding: 14px 18px;
-        margin: 12px 0;
-        color: #cbd5e1;
-        font-size: 0.9rem;
-        line-height: 1.6;
-    }
-
-    /* ── Prediction Table ── */
-    .pred-row-up {
-        color: #4ade80;
+    
+    /* Download Button */
+    .stDownloadButton > button {
+        background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+        color: white !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.5rem 1.5rem;
         font-weight: 600;
+        transition: all 0.3s ease;
     }
-
-    .pred-row-down {
-        color: #f87171;
-        font-weight: 600;
+    
+    .stDownloadButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
     }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+    
+    /* Slider */
+    .stSlider > div > div > div {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
     }
-
-    ::-webkit-scrollbar-track {
-        background: rgba(15, 20, 30, 0.5);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: rgba(118, 185, 0, 0.4);
-        border-radius: 3px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(118, 185, 0, 0.7);
-    }
-
-    /* ── Sidebar items ── */
-    .sidebar-stat {
-        background: rgba(118, 185, 0, 0.07);
-        border: 1px solid rgba(118, 185, 0, 0.18);
+    
+    /* Success/Error Messages */
+    .stSuccess, .stError, .stWarning, .stInfo {
         border-radius: 10px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        padding: 1rem;
     }
-
-    .sidebar-stat-label {
-        color: #64748b;
-        font-size: 0.78rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+    
+    /* Footer */
+    .footer {
+        text-align: center;
+        padding: 2rem;
+        color: #667eea;
+        font-size: 0.9rem;
+        border-top: 2px solid #667eea;
+        margin-top: 3rem;
     }
-
-    .sidebar-stat-value {
-        color: #f1f5f9;
-        font-size: 0.95rem;
-        font-weight: 700;
+    
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-
-    /* ── Status Indicator ── */
-    .status-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        background: #4ade80;
-        border-radius: 50%;
-        margin-right: 6px;
-        animation: pulse-green 2s infinite;
+    
+    .animated {
+        animation: fadeIn 0.6s ease-out;
     }
-
-    @keyframes pulse-green {
-        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
-        50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
-    }
-</style>
+    </style>
 """, unsafe_allow_html=True)
-
-
-# ==============================
-# 🔹 Helper: Plotly Theme Config
-# ==============================
-PLOTLY_LAYOUT = dict(
-    paper_bgcolor='rgba(13,17,23,0)',
-    plot_bgcolor='rgba(13,17,23,0)',
-    font=dict(family='Inter', color='#94a3b8', size=12),
-    xaxis=dict(
-        gridcolor='rgba(255,255,255,0.05)',
-        linecolor='rgba(255,255,255,0.1)',
-        tickfont=dict(color='#64748b'),
-        title_font=dict(color='#94a3b8'),
-        showgrid=True,
-        zeroline=False
-    ),
-    yaxis=dict(
-        gridcolor='rgba(255,255,255,0.05)',
-        linecolor='rgba(255,255,255,0.1)',
-        tickfont=dict(color='#64748b'),
-        title_font=dict(color='#94a3b8'),
-        showgrid=True,
-        zeroline=False
-    ),
-    legend=dict(
-        bgcolor='rgba(15,20,30,0.8)',
-        bordercolor='rgba(118,185,0,0.3)',
-        borderwidth=1,
-        font=dict(color='#cbd5e1')
-    ),
-    margin=dict(l=16, r=16, t=48, b=16),
-    hoverlabel=dict(
-        bgcolor='rgba(15,20,30,0.95)',
-        bordercolor='rgba(118,185,0,0.5)',
-        font=dict(color='#f1f5f9', family='Inter')
-    )
-)
-
 
 # ==============================
 # 🔹 Load Model (Cached)
 # ==============================
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def load_nvidia_model():
     model_file = 'LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras'
     try:
         model = load_model(model_file)
-        return model
+        return model, None
     except Exception as e:
-        return None
-
+        return None, str(e)
 
 # ==============================
 # 🔹 Fetch Stock Data (Cached)
 # ==============================
-@st.cache_data(ttl=3600)
-def get_stock_data(ticker='NVDA'):
+@st.cache_data(show_spinner=False)
+def get_stock_data(ticker='NVDA', period='max'):
     try:
-        data = yf.download(ticker, period='max', auto_adjust=True)
-        return data
+        stock = yf.Ticker(ticker)
+        data = stock.history(period=period)
+        info = stock.info
+        return data, info, None
     except Exception as e:
-        return None
-
-
-@st.cache_data(ttl=300)
-def get_live_quote(ticker='NVDA'):
-    try:
-        t = yf.Ticker(ticker)
-        info = t.fast_info
-        hist = t.history(period='2d')
-        if len(hist) >= 2:
-            prev_close = float(hist['Close'].iloc[-2])
-            curr_price = float(hist['Close'].iloc[-1])
-        else:
-            curr_price = float(info.last_price)
-            prev_close = float(info.previous_close) if hasattr(info, 'previous_close') else curr_price
-        change = curr_price - prev_close
-        change_pct = (change / prev_close) * 100
-        return {
-            'price': curr_price,
-            'prev_close': prev_close,
-            'change': change,
-            'change_pct': change_pct,
-            'market_cap': getattr(info, 'market_cap', None),
-            'volume': getattr(info, 'three_month_average_volume', None),
-        }
-    except Exception:
-        return None
-
+        return None, None, str(e)
 
 # ==============================
-# 🔹 Business Days
+# 🔹 Generate Business Days
 # ==============================
 def generate_business_days(start_date, num_days):
     return pd.bdate_range(start=start_date, periods=num_days).tolist()
-
 
 # ==============================
 # 🔹 Prediction Function
@@ -451,670 +236,565 @@ def generate_business_days(start_date, num_days):
 def predict_next_business_days(model, data, look_back=5, days=5):
     scaler = MinMaxScaler(feature_range=(0, 1))
     data_scaled = scaler.fit_transform(data)
+    
     last_sequence = data_scaled[-look_back:]
     predictions = []
+    
     for _ in range(days):
         X_input = np.reshape(last_sequence, (1, look_back, 1))
-        pred = model.predict(X_input, verbose=0)
-        predictions.append(pred[0, 0])
-        last_sequence = np.append(last_sequence[1:], pred, axis=0)
+        prediction = model.predict(X_input, verbose=0)
+        predictions.append(prediction[0, 0])
+        last_sequence = np.append(last_sequence[1:], prediction, axis=0)
+    
     predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
     return predictions
 
+# ==============================
+# 🔹 Calculate Technical Indicators
+# ==============================
+def calculate_indicators(data):
+    # Moving Averages
+    data['SMA_20'] = data['Close'].rolling(window=20).mean()
+    data['SMA_50'] = data['Close'].rolling(window=50).mean()
+    data['EMA_20'] = data['Close'].ewm(span=20, adjust=False).mean()
+    
+    # RSI
+    delta = data['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+    rs = gain / loss
+    data['RSI'] = 100 - (100 / (1 + rs))
+    
+    return data
 
 # ==============================
-# 🔹 Chart Builders
+# 🎯 Main App
 # ==============================
-def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_days=90):
-    df = stock_data.tail(lookback_days).copy()
 
-    # Flatten MultiIndex columns if present
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = [col[0] for col in df.columns]
-
-    fig = make_subplots(
-        rows=2, cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.06,
-        row_heights=[0.72, 0.28],
-        subplot_titles=('', '')
-    )
-
-    # ── Candlestick ──
-    fig.add_trace(go.Candlestick(
-        x=df.index,
-        open=df['Open'].squeeze(),
-        high=df['High'].squeeze(),
-        low=df['Low'].squeeze(),
-        close=df['Close'].squeeze(),
-        name='OHLC',
-        increasing=dict(line=dict(color='#4ade80', width=1), fillcolor='rgba(74,222,128,0.8)'),
-        decreasing=dict(line=dict(color='#f87171', width=1), fillcolor='rgba(248,113,113,0.8)'),
-        whiskerwidth=0.5
-    ), row=1, col=1)
-
-    # ── 20-day MA ──
-    close_series = df['Close'].squeeze()
-    ma20 = close_series.rolling(window=20).mean()
-    ma50 = close_series.rolling(window=50).mean()
-
-    fig.add_trace(go.Scatter(
-        x=df.index, y=ma20,
-        name='MA 20', line=dict(color='#f59e0b', width=1.5, dash='dot'),
-        opacity=0.85
-    ), row=1, col=1)
-
-    fig.add_trace(go.Scatter(
-        x=df.index, y=ma50,
-        name='MA 50', line=dict(color='#60a5fa', width=1.5, dash='dot'),
-        opacity=0.85
-    ), row=1, col=1)
-
-    # ── Prediction Shaded Zone ──
-    if predictions is not None and prediction_dates is not None:
-        pred_flat = predictions.flatten()
-        last_actual_price = float(df['Close'].iloc[-1])
-        pred_x = [df.index[-1]] + list(prediction_dates)
-        pred_y = [last_actual_price] + list(pred_flat)
-
-        fig.add_trace(go.Scatter(
-            x=pred_x + pred_x[::-1],
-            y=[p * 1.015 for p in pred_y] + [p * 0.985 for p in pred_y[::-1]],
-            fill='toself',
-            fillcolor='rgba(118,185,0,0.07)',
-            line=dict(color='rgba(0,0,0,0)'),
-            name='Forecast Band',
-            showlegend=False,
-            hoverinfo='skip'
-        ), row=1, col=1)
-
-        fig.add_trace(go.Scatter(
-            x=pred_x, y=pred_y,
-            name='Forecast',
-            line=dict(color='#76b900', width=2.5, dash='dash'),
-            mode='lines+markers',
-            marker=dict(size=7, color='#76b900', symbol='circle',
-                        line=dict(color='#0a0a0f', width=1.5)),
-        ), row=1, col=1)
-
-    # ── Volume ──
-    colors_vol = ['#4ade80' if c >= o else '#f87171'
-                  for c, o in zip(close_series, df['Open'].squeeze())]
-
-    fig.add_trace(go.Bar(
-        x=df.index,
-        y=df['Volume'].squeeze(),
-        name='Volume',
-        marker_color=colors_vol,
-        opacity=0.65,
-        showlegend=False
-    ), row=2, col=1)
-
-    layout = dict(**PLOTLY_LAYOUT)
-    layout.update(dict(
-        title=dict(text='<b>NVDA · Price Action & Forecast</b>',
-                   font=dict(size=16, color='#f1f5f9'), x=0.02),
-        xaxis2=dict(
-            **PLOTLY_LAYOUT['xaxis'],
-            rangeslider=dict(visible=False)
-        ),
-        yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
-        yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560,
-        dragmode='pan',
-        hovermode='x unified',
-    ))
-    fig.update_layout(**layout)
-    fig.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.04)')
-    fig.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.04)')
-    return fig
-
-
-def build_forecast_chart(prediction_dates, predictions, last_actual_price):
-    pred_flat = predictions.flatten()
-    dates_full = [pd.Timestamp(prediction_dates[0]) - timedelta(days=1)] + list(prediction_dates)
-    prices_full = [last_actual_price] + list(pred_flat)
-    colors = ['#f1f5f9'] + ['#4ade80' if p >= last_actual_price else '#f87171' for p in pred_flat]
-
-    fig = go.Figure()
-
-    # Fill area
-    fig.add_trace(go.Scatter(
-        x=dates_full, y=prices_full,
-        fill='tozeroy',
-        fillcolor='rgba(118,185,0,0.05)',
-        line=dict(color='rgba(0,0,0,0)'),
-        showlegend=False, hoverinfo='skip'
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=dates_full, y=prices_full,
-        name='Forecast',
-        line=dict(color='#76b900', width=2.5),
-        mode='lines+markers',
-        marker=dict(size=10, color=colors, symbol='circle',
-                    line=dict(color='#0a0a0f', width=2)),
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
-    ))
-
-    # Reference line (last actual price)
-    fig.add_hline(
-        y=last_actual_price,
-        line=dict(color='rgba(148,163,184,0.4)', width=1.5, dash='dot'),
-        annotation_text=f'  Last Close: ${last_actual_price:.2f}',
-        annotation_font=dict(color='#94a3b8', size=11)
-    )
-
-    layout = dict(**PLOTLY_LAYOUT)
-    layout.update(dict(
-        title=dict(text='<b>Forecast · Next Business Days</b>',
-                   font=dict(size=16, color='#f1f5f9'), x=0.02),
-        xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
-        yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380,
-        hovermode='x unified',
-        showlegend=False
-    ))
-    fig.update_layout(**layout)
-    return fig
-
-
-def build_returns_chart(stock_data, days=252):
-    df = stock_data.tail(days).copy()
-
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = [col[0] for col in df.columns]
-
-    close = df['Close'].squeeze()
-    returns = close.pct_change().dropna() * 100
-
-    colors = ['#4ade80' if r >= 0 else '#f87171' for r in returns]
-
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=returns.index, y=returns.values,
-        marker_color=colors, opacity=0.8,
-        name='Daily Return %',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
-    ))
-
-    layout = dict(**PLOTLY_LAYOUT)
-    layout.update(dict(
-        title=dict(text='<b>Daily Returns (1Y)</b>',
-                   font=dict(size=16, color='#f1f5f9'), x=0.02),
-        yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
-        xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320,
-        hovermode='x unified',
-    ))
-    fig.update_layout(**layout)
-    return fig
-
-
-def build_volume_profile(stock_data, days=90):
-    df = stock_data.tail(days).copy()
-
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = [col[0] for col in df.columns]
-
-    close = df['Close'].squeeze()
-    volume = df['Volume'].squeeze()
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=df.index, y=volume,
-        fill='tozeroy',
-        fillcolor='rgba(96,165,250,0.15)',
-        line=dict(color='#60a5fa', width=1.5),
-        name='Volume',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
-    ))
-
-    layout = dict(**PLOTLY_LAYOUT)
-    layout.update(dict(
-        title=dict(text='<b>Trading Volume (90D)</b>',
-                   font=dict(size=16, color='#f1f5f9'), x=0.02),
-        yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280,
-        hovermode='x unified',
-        showlegend=False
-    ))
-    fig.update_layout(**layout)
-    return fig
-
-
-# ==============================
-# 🔹 Load Model & Initial Data
-# ==============================
-model = load_nvidia_model()
-STOCK = 'NVDA'
-
-# ==============================
-# 🔹 Sidebar
-# ==============================
+# Sidebar
 with st.sidebar:
-    st.markdown("""
-    <div style='text-align:center; padding: 8px 0 20px 0;'>
-        <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png'
-             style='width:160px; filter: brightness(1.1);'>
-        <p style='color:#64748b; font-size:0.75rem; margin-top:10px; letter-spacing:0.1em;'>
-            STOCK INTELLIGENCE PLATFORM
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png", width=200)
     st.markdown("---")
-
-    # Model Status
-    if model is not None:
-        st.markdown("""
-        <div style='display:flex; align-items:center; gap:8px; margin-bottom:16px;'>
-            <span class='status-dot'></span>
-            <span style='color:#4ade80; font-size:0.85rem; font-weight:600;'>LSTM Model Online</span>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div style='display:flex; align-items:center; gap:8px; margin-bottom:16px;'>
-            <span style='display:inline-block; width:8px; height:8px; background:#f87171;
-                         border-radius:50%; margin-right:6px;'></span>
-            <span style='color:#f87171; font-size:0.85rem; font-weight:600;'>Model Offline</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Model Specs
-    st.markdown("#### ⚙️ Model Architecture")
-    specs = [
-        ("Architecture", "LSTM"),
-        ("Look-Back Window", "5 Days"),
-        ("Hidden Units", "150"),
-        ("RMSE", "1.32"),
-        ("Trained On", "Max History"),
-    ]
-    for label, val in specs:
-        st.markdown(f"""
-        <div class='sidebar-stat'>
-            <span class='sidebar-stat-label'>{label}</span>
-            <span class='sidebar-stat-value'>{val}</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # Forecast Settings
-    st.markdown("#### 🎯 Forecast Settings")
-    num_days = st.slider("Forecast Horizon (Days)", 1, 30, 5,
-                         help="Number of business days to predict ahead")
-
-    lookback_chart = st.selectbox(
-        "Chart History Window",
-        options=[30, 60, 90, 180, 365],
-        index=2,
-        format_func=lambda x: f"{x} Days"
+    
+    st.markdown("### ⚙️ Configuration")
+    stock_ticker = st.text_input("Stock Ticker", value="NVDA", help="Enter stock ticker symbol")
+    num_days = st.slider("Forecast Days", 1, 30, 5, help="Number of business days to predict")
+    historical_period = st.selectbox(
+        "Historical Data Period",
+        ["1mo", "3mo", "6mo", "1y", "2y", "5y", "max"],
+        index=6
     )
-
+    
     st.markdown("---")
+    st.markdown("### 📊 Model Info")
+    st.info("""
+    **LSTM Model**
+    - Look-back: 5 days
+    - Units: 150
+    - RMSE: 1.32
+    """)
+    
+    st.markdown("---")
+    st.markdown("### 📖 About")
     st.markdown("""
-    <div style='color:#475569; font-size:0.72rem; text-align:center; line-height:1.7;'>
-        ⚠️ For educational purposes only.<br>
-        Not financial advice.<br><br>
-        Model predictions are based on<br>
-        historical price patterns only.
-    </div>
-    """, unsafe_allow_html=True)
+    This app uses a deep learning LSTM model to predict stock prices based on historical data.
+    
+    **⚠️ Disclaimer:** This is for educational purposes only. Not financial advice.
+    """)
 
+# Header
+st.markdown("<h1>📈 AI Stock Price Predictor</h1>", unsafe_allow_html=True)
 
-# ==============================
-# 🔹 Hero Header
-# ==============================
-st.markdown("""
-<div class='hero-banner'>
-    <div style='display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;'>
-        <div>
-            <div style='color:#76b900; font-size:0.8rem; font-weight:700; letter-spacing:0.15em;
-                        text-transform:uppercase; margin-bottom:8px;'>
-                AI-Powered · LSTM Neural Network
-            </div>
-            <h1 style='color:#f1f5f9; font-size:2.4rem; font-weight:800; margin:0; line-height:1.2;'>
-                NVIDIA Stock <span style='color:#76b900;'>Predictor</span>
-            </h1>
-            <p style='color:#64748b; margin-top:10px; font-size:1rem; max-width:520px; line-height:1.6;'>
-                Deep learning-powered price forecasting using Long Short-Term Memory networks
-                trained on NVDA's complete trading history.
-            </p>
-        </div>
-        <div style='text-align:right;'>
-            <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/NVIDIA_logo.svg/1920px-NVIDIA_logo.svg.png'
-                 style='width:200px; opacity:0.92;'>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# Load Model
+with st.spinner("🔄 Loading AI Model..."):
+    model, model_error = load_nvidia_model()
 
+if model_error:
+    st.error(f"❌ Error loading model: {model_error}")
+    st.stop()
 
-# ==============================
-# 🔹 Live Quote Strip
-# ==============================
-quote = get_live_quote(STOCK)
-
-if quote:
-    change_color = '#4ade80' if quote['change'] >= 0 else '#f87171'
-    change_arrow = '▲' if quote['change'] >= 0 else '▼'
-    delta_val = f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)"
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.metric("NVDA · Last Price", f"${quote['price']:.2f}",
-                  delta=f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)")
-    with c2:
-        st.metric("Previous Close", f"${quote['prev_close']:.2f}")
-    with c3:
-        mktcap = quote.get('market_cap')
-        if mktcap and mktcap > 0:
-            if mktcap >= 1e12:
-                mktcap_str = f"${mktcap/1e12:.2f}T"
-            else:
-                mktcap_str = f"${mktcap/1e9:.1f}B"
-        else:
-            mktcap_str = "N/A"
-        st.metric("Market Cap", mktcap_str)
-    with c4:
-        vol = quote.get('volume')
-        vol_str = f"{vol/1e6:.1f}M" if vol and vol > 0 else "N/A"
-        st.metric("Avg Volume", vol_str)
+# Success message
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.success("✅ Model loaded successfully!")
 
 st.markdown("---")
 
-# ==============================
-# 🔹 Session State Init
-# ==============================
-if 'prediction_results' not in st.session_state:
-    st.session_state.prediction_results = None
-if 'last_num_days' not in st.session_state:
-    st.session_state.last_num_days = 5
+# Current Date Display
+col1, col2, col3 = st.columns(3)
+with col2:
+    st.markdown(f"""
+    <div style='text-align: center; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    border-radius: 15px; color: white; font-size: 1.2rem; font-weight: 600;'>
+        📅 Current Date: {datetime.now().strftime('%Y-%m-%d')}
+    </div>
+    """, unsafe_allow_html=True)
 
-# ==============================
-# 🔹 Predict Button
-# ==============================
-col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-with col_btn2:
-    run_prediction = st.button(
-        f"🚀 Generate {num_days}-Day Forecast",
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Predict Button
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    predict_button = st.button(
+        f"🚀 Predict Next {num_days} Days for {stock_ticker}",
         key='forecast-button',
         use_container_width=True
     )
 
-if run_prediction:
-    if model is None:
-        st.markdown("""
-        <div class='warning-box'>
-            <b>⚠️ Model Not Available</b><br>
-            The LSTM model file could not be loaded. Please verify the model path and file integrity.
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        with st.spinner("⚡ Running LSTM inference..."):
-            stock_data = get_stock_data(STOCK)
+# Session State Init
+if 'prediction_results' not in st.session_state:
+    st.session_state.prediction_results = None
 
-            if stock_data is None or stock_data.empty:
-                st.markdown("""
-                <div class='warning-box'>
-                    ❌ Failed to fetch stock data. Please check your internet connection.
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                close_prices = stock_data['Close'].values.reshape(-1, 1)
-                dates = stock_data.index
-
-                predictions = predict_next_business_days(
-                    model, close_prices, look_back=5, days=num_days
-                )
-
-                last_date = dates[-1]
-                prediction_dates = generate_business_days(
-                    last_date + timedelta(days=1), num_days
-                )
-
-                st.session_state.prediction_results = {
-                    'stock_data': stock_data,
-                    'close_prices': close_prices,
-                    'dates': dates,
-                    'predictions': predictions,
-                    'prediction_dates': prediction_dates,
-                    'num_days': num_days,
-                    'stock': STOCK,
-                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                }
+# ==============================
+# 🔹 Prediction Logic
+# ==============================
+if predict_button:
+    with st.spinner("🔍 Fetching stock data..."):
+        stock_data, stock_info, data_error = get_stock_data(stock_ticker, historical_period)
+        time.sleep(0.5)  # For effect
+    
+    if data_error or stock_data is None:
+        st.error(f"❌ Error fetching data: {data_error}")
+        st.stop()
+    
+    if stock_data.empty:
+        st.error("❌ No data available for this ticker.")
+        st.stop()
+    
+    # Calculate indicators
+    stock_data = calculate_indicators(stock_data)
+    
+    with st.spinner("🤖 AI is analyzing patterns..."):
+        progress_bar = st.progress(0)
+        for i in range(100):
+            time.sleep(0.01)
+            progress_bar.progress(i + 1)
+        
+        close_prices = stock_data['Close'].values.reshape(-1, 1)
+        dates = stock_data.index
+        
+        predictions = predict_next_business_days(
+            model,
+            close_prices,
+            look_back=5,
+            days=num_days
+        )
+        
+        last_date = dates[-1]
+        prediction_dates = generate_business_days(last_date + timedelta(days=1), num_days)
+        
+        st.session_state.prediction_results = {
+            'stock_data': stock_data,
+            'stock_info': stock_info,
+            'close_prices': close_prices,
+            'dates': dates,
+            'predictions': predictions,
+            'prediction_dates': prediction_dates,
+            'num_days': num_days,
+            'stock': stock_ticker
+        }
+    
+    st.success("✅ Prediction completed successfully!")
+    time.sleep(0.5)
+    st.rerun()
 
 # ==============================
 # 🔹 Display Results
 # ==============================
 if st.session_state.prediction_results is not None:
-    r = st.session_state.prediction_results
-
-    stock_data = r['stock_data']
-    close_prices = r['close_prices']
-    predictions = r['predictions']
-    prediction_dates = r['prediction_dates']
-    stored_num_days = r['num_days']
-    ts = r.get('timestamp', '')
-    pred_flat = predictions.flatten()
-
-    # Flatten MultiIndex if needed
-    if isinstance(stock_data.columns, pd.MultiIndex):
-        stock_data_display = stock_data.copy()
-        stock_data_display.columns = [col[0] for col in stock_data_display.columns]
-    else:
-        stock_data_display = stock_data
-
-    last_actual_price = float(stock_data_display['Close'].iloc[-1])
-    final_pred_price = float(pred_flat[-1])
-    pred_change = final_pred_price - last_actual_price
-    pred_change_pct = (pred_change / last_actual_price) * 100
-
-    # ── Forecast Summary Cards ──
-    st.markdown(f"""
-    <div class='glass-card'>
-        <div class='section-header'>
-            <h3>📊 Forecast Summary</h3>
-            <span class='section-badge'>LSTM Prediction</span>
-        </div>
-        <p style='color:#64748b; font-size:0.82rem; margin:-8px 0 16px 0;'>
-            Generated at {ts} · {stored_num_days}-day horizon
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
-        st.metric("Last Close", f"${last_actual_price:.2f}")
-    with m2:
-        st.metric("Predicted Day 1", f"${pred_flat[0]:.2f}",
-                  delta=f"{pred_flat[0]-last_actual_price:+.2f}")
-    with m3:
-        direction = "▲" if pred_change >= 0 else "▼"
-        st.metric(f"End of Forecast ({stored_num_days}D)", f"${final_pred_price:.2f}",
-                  delta=f"{direction} {abs(pred_change_pct):.2f}%")
-    with m4:
-        avg_pred = float(np.mean(pred_flat))
-        st.metric("Avg Forecast Price", f"${avg_pred:.2f}")
-
+    results = st.session_state.prediction_results
+    
+    stock_data = results['stock_data']
+    stock_info = results['stock_info']
+    close_prices = results['close_prices']
+    dates = results['dates']
+    predictions = results['predictions']
+    prediction_dates = results['prediction_dates']
+    stored_num_days = results['num_days']
+    stored_stock = results['stock']
+    
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # ── Main Tabs ──
+    
+    # ==============================
+    # 📊 Key Metrics Section
+    # ==============================
+    st.markdown("### 📊 Key Metrics")
+    
+    current_price = close_prices[-1][0]
+    predicted_price = predictions[-1][0]
+    price_change = predicted_price - current_price
+    price_change_pct = (price_change / current_price) * 100
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="Current Price",
+            value=f"${current_price:.2f}",
+            delta=None
+        )
+    
+    with col2:
+        st.metric(
+            label=f"Predicted ({stored_num_days}d)",
+            value=f"${predicted_price:.2f}",
+            delta=f"{price_change:.2f} ({price_change_pct:+.2f}%)"
+        )
+    
+    with col3:
+        avg_prediction = np.mean(predictions)
+        st.metric(
+            label="Avg Predicted",
+            value=f"${avg_prediction:.2f}",
+            delta=f"{((avg_prediction - current_price) / current_price * 100):+.2f}%"
+        )
+    
+    with col4:
+        volatility = np.std(stock_data['Close'].tail(30))
+        st.metric(
+            label="30d Volatility",
+            value=f"${volatility:.2f}",
+            delta=None
+        )
+    
+    st.markdown("---")
+    
+    # ==============================
+    # 📈 Tabs for Different Views
+    # ==============================
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📈  Price Action & Forecast",
-        "🔮  Forecast Detail",
-        "📉  Returns Analysis",
-        "📋  Historical Data"
+        "📈 Price Prediction",
+        "📊 Technical Analysis",
+        "📋 Data Tables",
+        "ℹ️ Stock Info"
     ])
-
-    # ─── Tab 1: Candlestick + Forecast overlay ───
+    
+    # Tab 1: Price Prediction
     with tab1:
-        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-        fig_candle = build_candlestick_chart(
-            stock_data, predictions, prediction_dates,
-            lookback_days=lookback_chart
+        st.markdown("### 📈 Stock Price Prediction")
+        
+        # Combined Chart
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+            subplot_titles=('Price Chart', 'Volume'),
+            row_heights=[0.7, 0.3]
         )
-        st.plotly_chart(fig_candle, use_container_width=True, config={
-            'displayModeBar': True,
-            'modeBarButtonsToRemove': ['select2d', 'lasso2d'],
-            'displaylogo': False,
-            'scrollZoom': True
-        })
-
-        st.markdown("""
-        <div class='info-box'>
-            🕯️ <b>Reading the chart:</b> Green candles indicate price closed higher than open;
-            red candles indicate the opposite. The dashed green line represents the LSTM model's
-            forecast trajectory. MA 20 and MA 50 are moving averages overlaid for trend reference.
-        </div>
-        """, unsafe_allow_html=True)
-
-    # ─── Tab 2: Forecast Detail ───
+        
+        # Historical prices
+        fig.add_trace(
+            go.Scatter(
+                x=dates,
+                y=close_prices.flatten(),
+                name='Historical Price',
+                line=dict(color='#667eea', width=2),
+                hovertemplate='<b>Date</b>: %{x}<br><b>Price</b>: $%{y:.2f}<extra></extra>'
+            ),
+            row=1, col=1
+        )
+        
+        # Predicted prices
+        fig.add_trace(
+            go.Scatter(
+                x=prediction_dates,
+                y=predictions.flatten(),
+                name='Predicted Price',
+                line=dict(color='#ff6b6b', width=2, dash='dash'),
+                marker=dict(size=8, symbol='diamond'),
+                hovertemplate='<b>Date</b>: %{x}<br><b>Predicted</b>: $%{y:.2f}<extra></extra>'
+            ),
+            row=1, col=1
+        )
+        
+        # Volume
+        fig.add_trace(
+            go.Bar(
+                x=dates,
+                y=stock_data['Volume'],
+                name='Volume',
+                marker_color='rgba(102, 126, 234, 0.5)',
+                hovertemplate='<b>Date</b>: %{x}<br><b>Volume</b>: %{y:,.0f}<extra></extra>'
+            ),
+            row=2, col=1
+        )
+        
+        fig.update_layout(
+            height=700,
+            showlegend=True,
+            hovermode='x unified',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family='Poppins', size=12),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
+        )
+        
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Prediction Only Chart
+        st.markdown("### 🎯 Detailed Forecast")
+        
+        fig2 = go.Figure()
+        
+        fig2.add_trace(go.Scatter(
+            x=prediction_dates,
+            y=predictions.flatten(),
+            mode='lines+markers',
+            name='Predicted Price',
+            line=dict(color='#667eea', width=3),
+            marker=dict(size=10, color='#764ba2', line=dict(width=2, color='white')),
+            hovertemplate='<b>Date</b>: %{x}<br><b>Price</b>: $%{y:.2f}<extra></extra>'
+        ))
+        
+        # Add confidence band (simple estimation)
+        std_pred = np.std(predictions) * 1.5
+        upper_bound = predictions.flatten() + std_pred
+        lower_bound = predictions.flatten() - std_pred
+        
+        fig2.add_trace(go.Scatter(
+            x=prediction_dates + prediction_dates[::-1],
+            y=np.concatenate([upper_bound, lower_bound[::-1]]),
+            fill='toself',
+            fillcolor='rgba(102, 126, 234, 0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            name='Confidence Band',
+            hoverinfo='skip'
+        ))
+        
+        fig2.update_layout(
+            title=f'{stored_stock} - {stored_num_days} Day Forecast',
+            xaxis_title='Date',
+            yaxis_title='Predicted Price ($)',
+            height=500,
+            hovermode='x unified',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family='Poppins', size=12)
+        )
+        
+        fig2.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        fig2.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        
+        st.plotly_chart(fig2, use_container_width=True)
+    
+    # Tab 2: Technical Analysis
     with tab2:
-        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-        fig_forecast = build_forecast_chart(prediction_dates, predictions, last_actual_price)
-        st.plotly_chart(fig_forecast, use_container_width=True, config={
-            'displayModeBar': False,
-            'displaylogo': False
-        })
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # Prediction Table
-        pred_df = pd.DataFrame({
-            'Business Day': [f"Day {i+1}" for i in range(stored_num_days)],
-            'Date': [d.strftime('%A, %b %d %Y') for d in prediction_dates],
-            'Predicted Price': [f"${p:.2f}" for p in pred_flat],
-            'Change vs Close': [f"{p - last_actual_price:+.2f}" for p in pred_flat],
-            'Change %': [f"{((p - last_actual_price) / last_actual_price * 100):+.2f}%" for p in pred_flat],
-            'Signal': ['🟢 BUY' if p >= last_actual_price else '🔴 SELL' for p in pred_flat]
-        })
-
-        st.markdown("""
-        <div class='section-header' style='margin-bottom:12px;'>
-            <h3>Detailed Forecast Table</h3>
-            <span class='section-badge'>Day-by-Day</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.dataframe(
-            pred_df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                'Signal': st.column_config.TextColumn('Signal', width='small'),
-                'Predicted Price': st.column_config.TextColumn('Predicted Price', width='medium'),
-            }
+        st.markdown("### 📊 Technical Indicators")
+        
+        # Moving Averages Chart
+        fig3 = go.Figure()
+        
+        fig3.add_trace(go.Scatter(
+            x=dates,
+            y=close_prices.flatten(),
+            name='Close Price',
+            line=dict(color='#667eea', width=2)
+        ))
+        
+        fig3.add_trace(go.Scatter(
+            x=dates,
+            y=stock_data['SMA_20'],
+            name='SMA 20',
+            line=dict(color='#ff6b6b', width=1.5)
+        ))
+        
+        fig3.add_trace(go.Scatter(
+            x=dates,
+            y=stock_data['SMA_50'],
+            name='SMA 50',
+            line=dict(color='#4ecdc4', width=1.5)
+        ))
+        
+        fig3.add_trace(go.Scatter(
+            x=dates,
+            y=stock_data['EMA_20'],
+            name='EMA 20',
+            line=dict(color='#ffe66d', width=1.5, dash='dot')
+        ))
+        
+        fig3.update_layout(
+            title='Moving Averages',
+            xaxis_title='Date',
+            yaxis_title='Price ($)',
+            height=500,
+            hovermode='x unified',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family='Poppins')
         )
-
-        st.markdown("""
-        <div class='warning-box'>
-            ⚠️ <b>Disclaimer:</b> Signals shown are derived purely from model output relative to last
-            close price. They are <b>not</b> financial advice. Past model performance does not
-            guarantee future accuracy. Always consult a licensed financial advisor.
-        </div>
-        """, unsafe_allow_html=True)
-
-    # ─── Tab 3: Returns Analysis ───
+        
+        fig3.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        fig3.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        
+        st.plotly_chart(fig3, use_container_width=True)
+        
+        # RSI Chart
+        fig4 = go.Figure()
+        
+        fig4.add_trace(go.Scatter(
+            x=dates,
+            y=stock_data['RSI'],
+            name='RSI',
+            line=dict(color='#667eea', width=2),
+            fill='tozeroy',
+            fillcolor='rgba(102, 126, 234, 0.3)'
+        ))
+        
+        # Overbought/Oversold lines
+        fig4.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="Overbought")
+        fig4.add_hline(y=30, line_dash="dash", line_color="green", annotation_text="Oversold")
+        
+        fig4.update_layout(
+            title='Relative Strength Index (RSI)',
+            xaxis_title='Date',
+            yaxis_title='RSI',
+            height=400,
+            hovermode='x unified',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family='Poppins')
+        )
+        
+        fig4.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        fig4.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(128,128,128,0.2)')
+        
+        st.plotly_chart(fig4, use_container_width=True)
+        
+        # Technical Indicators Summary
+        col1, col2, col3 = st.columns(3)
+        
+        current_rsi = stock_data['RSI'].iloc[-1]
+        current_sma20 = stock_data['SMA_20'].iloc[-1]
+        current_price = close_prices[-1][0]
+        
+        with col1:
+            rsi_signal = "🔴 Overbought" if current_rsi > 70 else "🟢 Oversold" if current_rsi < 30 else "🟡 Neutral"
+            st.metric("RSI Signal", rsi_signal, f"{current_rsi:.2f}")
+        
+        with col2:
+            ma_signal = "🟢 Bullish" if current_price > current_sma20 else "🔴 Bearish"
+            st.metric("MA Signal", ma_signal, f"${current_sma20:.2f}")
+        
+        with col3:
+            trend = "📈 Upward" if predictions[-1][0] > current_price else "📉 Downward"
+            st.metric("Predicted Trend", trend)
+    
+    # Tab 3: Data Tables
     with tab3:
-        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-        fig_ret = build_returns_chart(stock_data, days=252)
-        st.plotly_chart(fig_ret, use_container_width=True, config={
-            'displayModeBar': False, 'displaylogo': False
-        })
-
-        fig_vol = build_volume_profile(stock_data, days=lookback_chart)
-        st.plotly_chart(fig_vol, use_container_width=True, config={
-            'displayModeBar': False, 'displaylogo': False
-        })
-
-        # Stats row
-        if isinstance(stock_data_display.columns, pd.MultiIndex):
-            close_s = stock_data_display['Close'].squeeze()
-        else:
-            close_s = stock_data_display['Close'].squeeze()
-
-        ret_1y = close_s.tail(252).pct_change().dropna() * 100
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div class='section-header'>
-            <h3>Return Statistics (1Y)</h3>
-            <span class='section-badge'>Annualized</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        rs1, rs2, rs3, rs4 = st.columns(4)
-        with rs1:
-            st.metric("Mean Daily Return", f"{ret_1y.mean():.3f}%")
-        with rs2:
-            st.metric("Std Deviation", f"{ret_1y.std():.3f}%")
-        with rs3:
-            best = ret_1y.max()
-            st.metric("Best Day", f"+{best:.2f}%")
-        with rs4:
-            worst = ret_1y.min()
-            st.metric("Worst Day", f"{worst:.2f}%")
-
-    # ─── Tab 4: Historical Data ───
-    with tab4:
-        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class='section-header'>
-            <h3>Full Historical Dataset</h3>
-            <span class='section-badge'>Max History</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        disp = stock_data_display.sort_index(ascending=False).copy()
-        # Round numeric columns
-        for col in disp.select_dtypes(include=np.number).columns:
-            disp[col] = disp[col].round(4)
-
-        st.dataframe(disp, height=480, use_container_width=True)
-
-        # Download button
-        csv = disp.to_csv().encode('utf-8')
-        col_dl1, col_dl2, col_dl3 = st.columns([1, 1, 1])
-        with col_dl2:
-            st.download_button(
-                label="⬇️ Download CSV",
-                data=csv,
-                file_name=f"NVDA_historical_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime='text/csv',
-                use_container_width=True
-            )
-
-else:
-    # ── Placeholder State ──
-    st.markdown("""
-    <div class='glass-card' style='text-align:center; padding: 60px 40px;'>
-        <div style='font-size:4rem; margin-bottom:16px;'>📡</div>
-        <h2 style='color:#f1f5f9; font-size:1.6rem; margin-bottom:12px;'>Ready to Forecast</h2>
-        <p style='color:#64748b; max-width:420px; margin:0 auto; line-height:1.7; font-size:0.95rem;'>
-            Configure your forecast horizon in the sidebar, then click
-            <b style='color:#76b900;'>Generate Forecast</b> to run the LSTM model
-            and visualize predicted NVDA price movements.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Show basic chart even without prediction
-    with st.spinner("Loading market data..."):
-        stock_data_preview = get_stock_data(STOCK)
-        if stock_data_preview is not None and not stock_data_preview.empty:
-            fig_prev = build_candlestick_chart(
-                stock_data_preview, None, None, lookback_days=90
-            )
-            st.plotly_chart(fig_prev, use_container_width=True, config={
-                'displayModeBar': True,
-                'modeBarButtonsToRemove': ['select2d', 'lasso2d'],
-                'displaylogo': False,
-                'scrollZoom': True
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("### 📋 Predicted Prices")
+            prediction_df = pd.DataFrame({
+                'Date': [d.strftime('%Y-%m-%d') for d in prediction_dates],
+                'Predicted Price': [f"${p[0]:.2f}" for p in predictions],
+                'Change from Current': [f"{((p[0] - current_price) / current_price * 100):+.2f}%" for p in predictions]
             })
+            st.dataframe(prediction_df, use_container_width=True, height=400)
+            
+            # Download button
+            csv = prediction_df.to_csv(index=False)
+            st.download_button(
+                label="📥 Download Predictions",
+                data=csv,
+                file_name=f"{stored_stock}_predictions_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv"
+            )
+        
+        with col2:
+            st.markdown("### 📊 Recent Historical Data")
+            recent_data = stock_data[['Close', 'Volume', 'SMA_20', 'RSI']].tail(10)
+            recent_data = recent_data.round(2)
+            st.dataframe(recent_data, use_container_width=True, height=400)
+            
+            # Download button
+            csv_historical = stock_data.to_csv()
+            st.download_button(
+                label="📥 Download Historical Data",
+                data=csv_historical,
+                file_name=f"{stored_stock}_historical_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv"
+            )
+    
+    # Tab 4: Stock Info
+    with tab4:
+        st.markdown("### ℹ️ Company Information")
+        
+        if stock_info:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown(f"""
+                <div class='info-card'>
+                    <h3>{stock_info.get('longName', 'N/A')}</h3>
+                    <p><b>Sector:</b> {stock_info.get('sector', 'N/A')}</p>
+                    <p><b>Industry:</b> {stock_info.get('industry', 'N/A')}</p>
+                    <p><b>Country:</b> {stock_info.get('country', 'N/A')}</p>
+                    <p><b>Website:</b> <a href="{stock_info.get('website', '#')}" target="_blank" style="color: white;">{stock_info.get('website', 'N/A')}</a></p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown(f"""
+                <div style='background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin: 1rem 0;'>
+                    <h4 style='color: #667eea;'>Market Data</h4>
+                    <p><b>Market Cap:</b> ${stock_info.get('marketCap', 0):,.0f}</p>
+                    <p><b>52 Week High:</b> ${stock_info.get('fiftyTwoWeekHigh', 0):.2f}</p>
+                    <p><b>52 Week Low:</b> ${stock_info.get('fiftyTwoWeekLow', 0):.2f}</p>
+                    <p><b>Average Volume:</b> {stock_info.get('averageVolume', 0):,}</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(f"""
+                <div style='background: #f8f9fa; padding: 1.5rem; border-radius: 15px;'>
+                    <h4 style='color: #667eea;'>Valuation Metrics</h4>
+                    <p><b>P/E Ratio:</b> {stock_info.get('trailingPE', 'N/A')}</p>
+                    <p><b>Forward P/E:</b> {stock_info.get('forwardPE', 'N/A')}</p>
+                    <p><b>PEG Ratio:</b> {stock_info.get('pegRatio', 'N/A')}</p>
+                    <p><b>Price to Book:</b> {stock_info.get('priceToBook', 'N/A')}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown(f"""
+                <div style='background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin: 1rem 0;'>
+                    <h4 style='color: #667eea;'>Dividend Info</h4>
+                    <p><b>Dividend Rate:</b> ${stock_info.get('dividendRate', 0):.2f}</p>
+                    <p><b>Dividend Yield:</b> {stock_info.get('dividendYield', 0) * 100:.2f}%</p>
+                    <p><b>Payout Ratio:</b> {stock_info.get('payoutRatio', 0) * 100:.2f}%</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Company Description
+            if 'longBusinessSummary' in stock_info:
+                st.markdown("### 📝 Company Overview")
+                st.markdown(f"""
+                <div style='background: #f8f9fa; padding: 1.5rem; border-radius: 15px;'>
+                    {stock_info['longBusinessSummary']}
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Stock information not available.")
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div class='footer'>
+    <p><b>🤖 AI Stock Price Predictor</b></p>
+    <p>Powered by LSTM Deep Learning | Built with Streamlit</p>
+    <p style='font-size: 0.8rem; color: #999;'>
+        ⚠️ <b>Disclaimer:</b> This application is for educational and informational purposes only. 
+        It should not be considered as financial advice. Always do your own research and consult with a 
+        qualified financial advisor before making investment decisions.
+    </p>
+    <p style='margin-top: 1rem;'>Made with ❤️ by AI Enthusiasts</p>
+</div>
+""", unsafe_allow_html=True)
