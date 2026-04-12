@@ -23,7 +23,48 @@ st.set_page_config(
 # 🔹 Theme State Init (MUST be before any CSS)
 # ==============================
 if 'theme' not in st.session_state:
-    st.session_state.theme = 'Dark'
+    st.session_state.theme = 'System 🖳'
+
+# ==============================
+# 🔹 Detect System Theme & Resolve Effective Theme
+# ==============================
+def get_effective_theme(theme_choice):
+    """Resolve 'System' to actual Dark/Light based on browser preference via JS injection."""
+    if theme_choice == 'System 🖳':
+        # Inject JS to detect system preference and store in query params
+        system_theme_js = """
+        <script>
+        (function() {
+            const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = isDark ? 'dark' : 'light';
+            // Store in sessionStorage so we can read it
+            if (!sessionStorage.getItem('systemThemeSet')) {
+                sessionStorage.setItem('systemTheme', theme);
+                sessionStorage.setItem('systemThemeSet', 'true');
+            }
+            // Update URL param to communicate to Streamlit
+            const url = new URL(window.location);
+            const current = url.searchParams.get('sys_theme');
+            if (current !== theme) {
+                url.searchParams.set('sys_theme', theme);
+                window.history.replaceState({}, '', url);
+            }
+        })();
+        </script>
+        """
+        st.markdown(system_theme_js, unsafe_allow_html=True)
+
+        # Read from query params if available
+        query_params = st.query_params
+        sys_theme = query_params.get('sys_theme', 'dark')
+        return 'Dark' if sys_theme == 'dark' else 'Light'
+    elif theme_choice == 'Light ☼':
+        return 'Light'
+    else:  # 'Dark ⏾'
+        return 'Dark'
+
+effective_theme = get_effective_theme(st.session_state.theme)
+IS_DARK = effective_theme == 'Dark'
 
 # ==============================
 # 🔹 Global CSS Styling (Theme-Aware)
@@ -242,25 +283,6 @@ def apply_theme_css(theme):
         50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(22,163,74,0); }
     }
 
-    /* Theme toggle button override — keep it styled distinctly */
-    .theme-toggle-btn > button {
-        background: linear-gradient(135deg, #1a2e05 0%, #2d4a0e 100%) !important;
-        color: #76b900 !important;
-        border: 1px solid rgba(118,185,0,0.4) !important;
-        border-radius: 10px !important;
-        padding: 10px 20px !important;
-        font-size: 0.85rem !important;
-        font-weight: 600 !important;
-        box-shadow: none !important;
-        text-transform: none !important;
-        letter-spacing: 0 !important;
-    }
-    .theme-toggle-btn > button:hover {
-        background: linear-gradient(135deg, #2d4a0e 0%, #3d6010 100%) !important;
-        box-shadow: 0 4px 12px rgba(118,185,0,0.25) !important;
-        transform: translateY(-1px) !important;
-    }
-
     [data-testid="stDownloadButton"] > button {
         background: linear-gradient(90deg, #ff8a00, #e52e71);
         color: white !important;
@@ -470,25 +492,6 @@ def apply_theme_css(theme):
         50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74,222,128,0); }
     }
 
-    /* Theme toggle button override */
-    .theme-toggle-btn > button {
-        background: linear-gradient(135deg, rgba(118,185,0,0.12) 0%, rgba(118,185,0,0.06) 100%) !important;
-        color: #76b900 !important;
-        border: 1px solid rgba(118,185,0,0.35) !important;
-        border-radius: 10px !important;
-        padding: 10px 20px !important;
-        font-size: 0.85rem !important;
-        font-weight: 600 !important;
-        box-shadow: none !important;
-        text-transform: none !important;
-        letter-spacing: 0 !important;
-    }
-    .theme-toggle-btn > button:hover {
-        background: linear-gradient(135deg, rgba(118,185,0,0.22) 0%, rgba(118,185,0,0.12) 100%) !important;
-        box-shadow: 0 4px 12px rgba(118,185,0,0.2) !important;
-        transform: translateY(-1px) !important;
-    }
-
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] label,
     [data-testid="stSidebar"] label,
@@ -518,8 +521,7 @@ def apply_theme_css(theme):
 </style>
 """, unsafe_allow_html=True)
 
-apply_theme_css(st.session_state.theme)
-IS_DARK = st.session_state.theme == 'Dark'
+apply_theme_css(effective_theme)
 
 # ==============================
 # 🔹 Helper: Plotly Theme Config
@@ -684,7 +686,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         subplot_titles=('', '')
     )
 
-    # Candle colors
     if IS_DARK:
         inc_line, inc_fill = '#4ade80', 'rgba(74,222,128,0.8)'
         dec_line, dec_fill = '#f87171', 'rgba(248,113,113,0.8)'
@@ -934,15 +935,29 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Theme Toggle ──
+    # ── Appearance Dropdown ──
     st.markdown("#### 🎨 Appearance")
 
-    theme_label = "☀️ Switch to Light Mode" if IS_DARK else "🌙 Switch to Dark Mode"
-    st.markdown("<div class='theme-toggle-btn'>", unsafe_allow_html=True)
-    if st.button(theme_label, key='theme-toggle', use_container_width=True):
-        st.session_state.theme = 'Light' if IS_DARK else 'Dark'
+    theme_options = ['System 🖳', 'Light ☼', 'Dark ⏾']
+
+    # Find current index safely
+    current_theme = st.session_state.theme
+    if current_theme not in theme_options:
+        current_theme = 'System 🖳'
+    current_index = theme_options.index(current_theme)
+
+    selected_theme = st.selectbox(
+        label="Theme",
+        options=theme_options,
+        index=current_index,
+        key='theme_selectbox',
+        label_visibility='collapsed'
+    )
+
+    # Update session state and rerun if changed
+    if selected_theme != st.session_state.theme:
+        st.session_state.theme = selected_theme
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
