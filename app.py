@@ -770,14 +770,29 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
+    # ── FIX 1: Candlestick with custom hovertemplate ──
+    # Use hovertemplate on each candlestick component via customdata trick.
+    # Plotly's go.Candlestick supports a single hovertemplate string.
+    # We supply Open/High/Low/Close via the trace's own fields.
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
+        open=df['Open'].squeeze(),
+        high=df['High'].squeeze(),
+        low=df['Low'].squeeze(),
+        close=df['Close'].squeeze(),
         name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5
+        whiskerwidth=0.5,
+        # Bold centered date header, then OHLC rows; <extra></extra> removes trace name box
+        hovertemplate=(
+            '<b style="text-align:center;display:block;">%{x|%b %d, %Y}</b>'
+            '<br>Open : $%{open:.2f}'
+            '<br>High : $%{high:.2f}'
+            '<br>Low : $%{low:.2f}'
+            '<br>Close : $%{close:.2f}'
+            '<extra></extra>'
+        )
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
@@ -786,12 +801,14 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90
+        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>MA 20: $%{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90
+        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>MA 50: $%{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -814,6 +831,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
+            hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast: $%{y:.2f}<extra></extra>'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
@@ -822,7 +840,8 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False
+        opacity=0.60, showlegend=False,
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: %{y:,.0f}<extra></extra>'
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -870,6 +889,8 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         line=dict(color='rgba(0,0,0,0)'),
         showlegend=False, hoverinfo='skip'
     ))
+
+    # ── FIX 2: Remove duplicate date – keep only "Apr 15, 2026" format ──
     fig.add_trace(go.Scatter(
         x=dates_full, y=prices_full, name='Forecast',
         line=dict(color='#76b900', width=2.5),
@@ -878,6 +899,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
                     line=dict(color=marker_border, width=2)),
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
+
     fig.add_hline(
         y=last_actual_price,
         line=dict(color=ref_line_color, width=1.5, dash='dot'),
@@ -889,9 +911,10 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     layout.update(dict(
         title=dict(text='<b>Forecast · Next Business Days</b>',
                    font=dict(size=16, color=title_color), x=0.02),
+        # ── FIX 2 cont: tickformat removed so axis shows full date, hovermode not unified
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='x unified', showlegend=False
+        height=380, hovermode='x', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -917,6 +940,7 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
+        # ── FIX 3: Single date line, then Return ──
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
@@ -926,7 +950,7 @@ def build_returns_chart(stock_data, days=252):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='x unified',
+        height=320, hovermode='x',
     ))
     fig.update_layout(**layout)
     return fig
@@ -956,7 +980,8 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
+        # ── FIX 3: Single date line, then Volume ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -965,7 +990,7 @@ def build_volume_profile(stock_data, days=90):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='x unified', showlegend=False
+        height=280, hovermode='x', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
