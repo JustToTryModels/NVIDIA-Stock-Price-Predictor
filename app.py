@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
-import streamlit.components.v1 as components
 
 # ==============================
 # 🔹 Page Configuration
@@ -21,36 +20,51 @@ st.set_page_config(
 )
 
 # ==============================
-# 🔹 Theme Detection (System, Light, Dark)
+# 🔹 Theme State Init (MUST be before any CSS)
 # ==============================
-if 'sys_theme' not in st.query_params:
-    components.html(
-        """
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'System 🖳'
+
+# ==============================
+# 🔹 Detect System Theme & Resolve Effective Theme
+# ==============================
+def get_effective_theme(theme_choice):
+    """Resolve 'System' to actual Dark/Light based on browser preference via JS injection."""
+    if theme_choice == 'System 🖳':
+        # Inject JS to detect system preference and store in query params
+        system_theme_js = """
         <script>
-            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        (function() {
+            const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             const theme = isDark ? 'dark' : 'light';
-            const url = new URL(window.parent.location);
-            url.searchParams.set('sys_theme', theme);
-            window.parent.location.replace(url.toString());
+            // Store in sessionStorage so we can read it
+            if (!sessionStorage.getItem('systemThemeSet')) {
+                sessionStorage.setItem('systemTheme', theme);
+                sessionStorage.setItem('systemThemeSet', 'true');
+            }
+            // Update URL param to communicate to Streamlit
+            const url = new URL(window.location);
+            const current = url.searchParams.get('sys_theme');
+            if (current !== theme) {
+                url.searchParams.set('sys_theme', theme);
+                window.history.replaceState({}, '', url);
+            }
+        })();
         </script>
-        """,
-        height=0,
-        width=0,
-    )
-    st.stop()
+        """
+        st.markdown(system_theme_js, unsafe_allow_html=True)
 
-system_pref = st.query_params.get('sys_theme', 'dark')
+        # Read from query params if available
+        query_params = st.query_params
+        sys_theme = query_params.get('sys_theme', 'dark')
+        return 'Dark' if sys_theme == 'dark' else 'Light'
+    elif theme_choice == 'Light ☼':
+        return 'Light'
+    else:  # 'Dark ⏾'
+        return 'Dark'
 
-if 'theme_choice' not in st.session_state:
-    st.session_state.theme_choice = 'System 🖳'
-
-# Determine actual theme to apply
-if st.session_state.theme_choice == 'Dark ⏾':
-    actual_theme = 'Dark'
-elif st.session_state.theme_choice == 'Light ☼':
-    actual_theme = 'Light'
-else:  # System 🖳
-    actual_theme = 'Dark' if system_pref == 'dark' else 'Light'
+effective_theme = get_effective_theme(st.session_state.theme)
+IS_DARK = effective_theme == 'Dark'
 
 # ==============================
 # 🔹 Global CSS Styling (Theme-Aware)
@@ -507,8 +521,7 @@ def apply_theme_css(theme):
 </style>
 """, unsafe_allow_html=True)
 
-apply_theme_css(actual_theme)
-IS_DARK = actual_theme == 'Dark'
+apply_theme_css(effective_theme)
 
 # ==============================
 # 🔹 Helper: Plotly Theme Config
@@ -673,7 +686,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         subplot_titles=('', '')
     )
 
-    # Candle colors
     if IS_DARK:
         inc_line, inc_fill = '#4ade80', 'rgba(74,222,128,0.8)'
         dec_line, dec_fill = '#f87171', 'rgba(248,113,113,0.8)'
@@ -923,15 +935,29 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Theme Selector ──
+    # ── Appearance Dropdown ──
     st.markdown("#### 🎨 Appearance")
-    theme_options = ["System 🖳", "Light ☼", "Dark ⏾"]
-    st.session_state.theme_choice = st.selectbox(
-        "Theme",
+
+    theme_options = ['System 🖳', 'Light ☼', 'Dark ⏾']
+
+    # Find current index safely
+    current_theme = st.session_state.theme
+    if current_theme not in theme_options:
+        current_theme = 'System 🖳'
+    current_index = theme_options.index(current_theme)
+
+    selected_theme = st.selectbox(
+        label="Theme",
         options=theme_options,
-        index=theme_options.index(st.session_state.theme_choice),
-        label_visibility="collapsed"
+        index=current_index,
+        key='theme_selectbox',
+        label_visibility='collapsed'
     )
+
+    # Update session state and rerun if changed
+    if selected_theme != st.session_state.theme:
+        st.session_state.theme = selected_theme
+        st.rerun()
 
     st.markdown("---")
 
