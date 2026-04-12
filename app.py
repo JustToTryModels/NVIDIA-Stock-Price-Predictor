@@ -770,25 +770,22 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # ── Candlestick with custom tooltip ──────────────────────────────────────
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(),   close=df['Close'].squeeze(),
-        name='OHLC',
+        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
+        name='', # Emptied to remove "OHLC" text from the tooltip
+        showlegend=False, # Removed from legend to prevent a blank item from showing
+        hovertemplate=(
+            "<b>Open</b> : $%{open:.2f}<br>"
+            "<b>High</b> : $%{high:.2f}<br>"
+            "<b>Low</b> : $%{low:.2f}<br>"
+            "<b>Close</b> : $%{close:.2f}<extra></extra>"
+        ),
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5,
-        hovertemplate=(
-            "<b>%{x|%b %d, %Y}</b><br>"
-            "Open : %{open:.2f}<br>"
-            "High : %{high:.2f}<br>"
-            "Low : %{low:.2f}<br>"
-            "Close : %{close:.2f}"
-            "<extra></extra>"
-        )
+        whiskerwidth=0.5
     ), row=1, col=1)
-    # ─────────────────────────────────────────────────────────────────────────
 
     close_series = df['Close'].squeeze()
     ma20 = close_series.rolling(window=20).mean()
@@ -842,12 +839,11 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan',
-        # ── switched from 'x unified' so per-trace hovertemplate is respected ──
-        hovermode='closest',
+        height=560, dragmode='pan', hovermode='x unified',
     ))
     fig.update_layout(**layout)
-    fig.update_xaxes(showgrid=True, gridcolor=grid_color)
+    # Using hoverformat="%b %-d, %Y" centers and bolds the date string exactly as "Feb 4, 2026"
+    fig.update_xaxes(showgrid=True, gridcolor=grid_color, hoverformat="%b %-d, %Y")
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
     return fig
 
