@@ -774,14 +774,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
         low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name='', # Emptied to remove "OHLC" text from the tooltip
-        showlegend=False, # Removed from legend to prevent a blank item from showing
-        hovertemplate=(
-            "<b>Open</b> : $%{open:.2f}<br>"
-            "<b>High</b> : $%{high:.2f}<br>"
-            "<b>Low</b> : $%{low:.2f}<br>"
-            "<b>Close</b> : $%{close:.2f}<extra></extra>"
-        ),
+        name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5
@@ -842,8 +835,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         height=560, dragmode='pan', hovermode='x unified',
     ))
     fig.update_layout(**layout)
-    # Using hoverformat="%b %-d, %Y" centers and bolds the date string exactly as "Feb 4, 2026"
-    fig.update_xaxes(showgrid=True, gridcolor=grid_color, hoverformat="%b %-d, %Y")
+    fig.update_xaxes(showgrid=True, gridcolor=grid_color)
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
     return fig
 
