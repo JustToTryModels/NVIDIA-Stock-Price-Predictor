@@ -184,6 +184,7 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
+    /* Light mode selectbox */
     [data-testid="stSelectbox"] > div > div {
         background: rgba(255,255,255,0.95) !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -193,6 +194,7 @@ def apply_theme_css(theme):
     [data-testid="stSelectbox"] > div > div > div {
         color: #1a2e05 !important;
     }
+    /* Light dropdown popover */
     [data-baseweb="popover"] [data-baseweb="menu"] {
         background: #ffffff !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -418,6 +420,7 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
+    /* ── Dark mode selectbox: closed state ── */
     [data-testid="stSelectbox"] > div > div {
         background: rgba(22,27,39,0.95) !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -430,6 +433,7 @@ def apply_theme_css(theme):
         fill: #e2e8f0 !important;
     }
 
+    /* ── Dark mode dropdown popover/listbox ── */
     [data-baseweb="popover"],
     [data-baseweb="popover"] > div,
     [data-baseweb="popover"] [data-baseweb="menu"] {
@@ -439,6 +443,7 @@ def apply_theme_css(theme):
         box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
     }
 
+    /* Every list item — base state */
     [data-baseweb="popover"] li,
     [data-baseweb="popover"] [role="option"] {
         background: #161b27 !important;
@@ -446,12 +451,14 @@ def apply_theme_css(theme):
         font-family: 'Inter', sans-serif !important;
     }
 
+    /* Non-selected item hover */
     [data-baseweb="popover"] li:hover,
     [data-baseweb="popover"] [role="option"]:hover {
         background: rgba(118,185,0,0.15) !important;
         color: #e2e8f0 !important;
     }
 
+    /* Selected item — always green, never white */
     [data-baseweb="popover"] [aria-selected="true"],
     [data-baseweb="popover"] li[aria-selected="true"] {
         background: rgba(118,185,0,0.22) !important;
@@ -459,6 +466,7 @@ def apply_theme_css(theme):
         font-weight: 600 !important;
     }
 
+    /* Selected item on hover — keep green, do NOT turn white */
     [data-baseweb="popover"] [aria-selected="true"]:hover,
     [data-baseweb="popover"] li[aria-selected="true"]:hover {
         background: rgba(118,185,0,0.30) !important;
@@ -466,6 +474,7 @@ def apply_theme_css(theme):
         font-weight: 600 !important;
     }
 
+    /* Scrollbar inside dropdown */
     [data-baseweb="popover"] ::-webkit-scrollbar { width: 4px; }
     [data-baseweb="popover"] ::-webkit-scrollbar-track { background: #0d1117; }
     [data-baseweb="popover"] ::-webkit-scrollbar-thumb { background: rgba(118,185,0,0.4); border-radius: 2px; }
@@ -595,9 +604,7 @@ def get_plotly_layout():
                 linecolor='rgba(255,255,255,0.1)',
                 tickfont=dict(color='#64748b'),
                 title_font=dict(color='#94a3b8'),
-                showgrid=True, 
-                zeroline=False,
-                hoverformat='%b %d, %Y'          # Added for consistent date formatting
+                showgrid=True, zeroline=False
             ),
             yaxis=dict(
                 gridcolor='rgba(255,255,255,0.05)',
@@ -629,9 +636,7 @@ def get_plotly_layout():
                 linecolor='rgba(118,185,0,0.20)',
                 tickfont=dict(color='#5a7a3a'),
                 title_font=dict(color='#3d5a1a'),
-                showgrid=True, 
-                zeroline=False,
-                hoverformat='%b %d, %Y'          # Added for consistent date formatting
+                showgrid=True, zeroline=False
             ),
             yaxis=dict(
                 gridcolor='rgba(118,185,0,0.10)',
@@ -731,7 +736,7 @@ def predict_next_business_days(model, data, look_back=5, days=5):
 
 
 # ==============================
-# 🔹 Chart Builders - UPDATED TOOLTIP LOGIC ONLY
+# 🔹 Chart Builders
 # ==============================
 def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_days=90):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -765,30 +770,53 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # ==================== UPDATED CANDLESTICK TOOLTIP ====================
-    fig.add_trace(go.Candlestick(
+    open_s = df['Open'].squeeze()
+    high_s = df['High'].squeeze()
+    low_s = df['Low'].squeeze()
+    close_s = df['Close'].squeeze()
+
+    # Build text fallback (in case current Plotly version doesn't accept hovertemplate on Candlestick)
+    hover_text = []
+    for o, h, l, c in zip(open_s.to_numpy(), high_s.to_numpy(), low_s.to_numpy(), close_s.to_numpy()):
+        hover_text.append(
+            f"- Open: <b>${o:.2f}</b><br>"
+            f"- High: <b>${h:.2f}</b><br>"
+            f"- Low: <b>${l:.2f}</b><br>"
+            f"- Close: <b>${c:.2f}</b>"
+        )
+
+    candle_kwargs = dict(
         x=df.index,
-        open=df['Open'].squeeze(), 
-        high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), 
-        close=df['Close'].squeeze(),
+        open=open_s,
+        high=high_s,
+        low=low_s,
+        close=close_s,
         name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertemplate=
-            '<b>%{x|%b %d, %Y}</b><br>' +
-            'Open : %{open:.2f}<br>' +
-            'High : %{high:.2f}<br>' +
-            'Low  : %{low:.2f}<br>' +
-            'Close: %{close:.2f}' +
-            '<extra></extra>'
-    ), row=1, col=1)
-    # =====================================================================
+        # Hide "OHLC" word in tooltip while keeping the symbol
+        hoverlabel=dict(namelength=0),
+    )
 
-    close_series = df['Close'].squeeze()
-    ma20 = close_series.rolling(window=20).mean()
-    ma50 = close_series.rolling(window=50).mean()
+    valid_props = getattr(go.Candlestick(), "_valid_props", set())
+    if 'hovertemplate' in valid_props:
+        candle_kwargs["hovertemplate"] = (
+            "- Open: <b>$%{open:.2f}</b><br>"
+            "- High: <b>$%{high:.2f}</b><br>"
+            "- Low: <b>$%{low:.2f}</b><br>"
+            "- Close: <b>$%{close:.2f}</b>"
+            "<extra></extra>"
+        )
+    else:
+        # Fallback (prevents ValueError on environments where hovertemplate isn't supported for Candlestick)
+        candle_kwargs["hovertext"] = hover_text
+        candle_kwargs["hoverinfo"] = "text"
+
+    fig.add_trace(go.Candlestick(**candle_kwargs), row=1, col=1)
+
+    ma20 = close_s.rolling(window=20).mean()
+    ma50 = close_s.rolling(window=50).mean()
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
@@ -820,11 +848,10 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hoverinfo='skip'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
-                  for c, o in zip(close_series, df['Open'].squeeze())]
+                  for c, o in zip(close_s, df['Open'].squeeze())]
 
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
@@ -842,6 +869,11 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         height=560, dragmode='pan', hovermode='x unified',
     ))
     fig.update_layout(**layout)
+
+    # Date in unified tooltip header (bold by default in Plotly unified hover) + centered
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
+    fig.update_layout(hoverlabel=dict(**PLOTLY_LAYOUT['hoverlabel'], align='center'))
+
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
     return fig
@@ -883,8 +915,8 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        # Updated tooltip - removed duplicate short date
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
+        # Removed repeated date inside hover; keep date only in the unified header
+        hovertemplate='Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
         y=last_actual_price,
@@ -902,6 +934,9 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         height=380, hovermode='x unified', showlegend=False
     ))
     fig.update_layout(**layout)
+
+    # Full date in the unified tooltip header (prevents "Apr 15" + "Apr 15, 2026")
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
     return fig
 
 
@@ -925,8 +960,8 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        # Updated tooltip - removed duplicate date
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
+        # Removed repeated date inside hover; keep date only in the unified header
+        hovertemplate='Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -938,6 +973,9 @@ def build_returns_chart(stock_data, days=252):
         height=320, hovermode='x unified',
     ))
     fig.update_layout(**layout)
+
+    # Full date in the unified tooltip header (prevents duplication)
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
     return fig
 
 
@@ -965,8 +1003,8 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        # Updated tooltip - removed duplicate date
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
+        # Removed repeated date inside hover; keep date only in the unified header
+        hovertemplate='Vol: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -978,6 +1016,9 @@ def build_volume_profile(stock_data, days=90):
         height=280, hovermode='x unified', showlegend=False
     ))
     fig.update_layout(**layout)
+
+    # Full date in the unified tooltip header (prevents duplication)
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
     return fig
 
 
@@ -1011,6 +1052,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Appearance Dropdown ──
     st.markdown("#### 🎨 Appearance")
 
     theme_options = ['System 🖳', 'Light ☼', 'Dark ⏾']
@@ -1034,6 +1076,7 @@ with st.sidebar:
 
     st.markdown("---")
 
+    # Model Status
     if model is not None:
         online_color = '#4ade80' if IS_DARK else '#16a34a'
         st.markdown(f"""
@@ -1052,6 +1095,7 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
 
+    # Model Specs
     st.markdown("#### ⚙️ Model Architecture")
     specs = [
         ("Architecture", "LSTM"),
@@ -1070,6 +1114,7 @@ with st.sidebar:
 
     st.markdown("---")
 
+    # Forecast Settings
     st.markdown("#### 🎯 Forecast Settings")
     num_days = st.slider("Forecast Horizon (Days)", 1, 30, 5,
                          help="Number of business days to predict ahead")
@@ -1094,8 +1139,7 @@ with st.sidebar:
 
 
 # ==============================
-# 🔹 Hero Header, Live Quote, Session State, Predict Button, Display Results
-# (No changes made in these sections as per your instructions)
+# 🔹 Hero Header
 # ==============================
 hero_logo_url = (
     'https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/'
@@ -1135,6 +1179,10 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+
+# ==============================
+# 🔹 Live Quote Strip
+# ==============================
 quote = get_live_quote(STOCK)
 
 if quote:
@@ -1160,11 +1208,17 @@ if quote:
 
 st.markdown("---")
 
+# ==============================
+# 🔹 Session State Init
+# ==============================
 if 'prediction_results' not in st.session_state:
     st.session_state.prediction_results = None
 if 'last_num_days' not in st.session_state:
     st.session_state.last_num_days = 5
 
+# ==============================
+# 🔹 Predict Button
+# ==============================
 col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
 with col_btn2:
     run_prediction = st.button(
@@ -1215,6 +1269,9 @@ if run_prediction:
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
 
+# ==============================
+# 🔹 Display Results
+# ==============================
 if st.session_state.prediction_results is not None:
     r = st.session_state.prediction_results
 
