@@ -34,14 +34,14 @@ def get_effective_theme(theme_choice):
         <script>
         (function() {
             const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = isDark? 'dark' : 'light';
+            const theme = isDark ? 'dark' : 'light';
             if (!sessionStorage.getItem('systemThemeSet')) {
                 sessionStorage.setItem('systemTheme', theme);
                 sessionStorage.setItem('systemThemeSet', 'true');
             }
             const url = new URL(window.location);
             const current = url.searchParams.get('sys_theme');
-            if (current!== theme) {
+            if (current !== theme) {
                 url.searchParams.set('sys_theme', theme);
                 window.history.replaceState({}, '', url);
             }
@@ -71,7 +71,7 @@ def apply_theme_css(theme):
 
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
-   .stApp {
+    .stApp {
         background: linear-gradient(135deg, #f0f7e6 0%, #ffffff 50%, #f5faf0 100%);
         color: #1a2e05;
     }
@@ -85,9 +85,9 @@ def apply_theme_css(theme):
         border-right: 1px solid rgba(118, 185, 0, 0.35);
     }
 
-    [data-testid="stSidebar"].stMarkdown h1,
-    [data-testid="stSidebar"].stMarkdown h2,
-    [data-testid="stSidebar"].stMarkdown h3 { color: #4a7c00; }
+    [data-testid="stSidebar"] .stMarkdown h1,
+    [data-testid="stSidebar"] .stMarkdown h2,
+    [data-testid="stSidebar"] .stMarkdown h3 { color: #4a7c00; }
 
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(242,249,234,0.95));
@@ -103,21 +103,21 @@ def apply_theme_css(theme):
         box-shadow: 0 8px 32px rgba(118,185,0,0.18), inset 0 1px 0 rgba(255,255,255,0.9);
     }
     [data-testid="stMetricLabel"] {
-        color: #5a7a3a!important;
-        font-size: 0.8rem!important;
-        font-weight: 500!important;
+        color: #5a7a3a !important;
+        font-size: 0.8rem !important;
+        font-weight: 500 !important;
         text-transform: uppercase;
         letter-spacing: 0.08em;
     }
     [data-testid="stMetricValue"] {
-        color: #1a2e05!important;
-        font-size: 1.6rem!important;
-        font-weight: 700!important;
+        color: #1a2e05 !important;
+        font-size: 1.6rem !important;
+        font-weight: 700 !important;
     }
-    [data-testid="stMetricDelta"] { font-size: 0.85rem!important; font-weight: 500!important; }
+    [data-testid="stMetricDelta"] { font-size: 0.85rem !important; font-weight: 500 !important; }
 
-    [data-testid="stSlider"] > div > div > div > div { background: #76b900!important; }
-   .stSlider [data-baseweb="slider"] { padding-top: 10px; }
+    [data-testid="stSlider"] > div > div > div > div { background: #76b900 !important; }
+    .stSlider [data-baseweb="slider"] { padding-top: 10px; }
 
     [data-testid="stDataFrame"] {
         border: 1px solid rgba(118,185,0,0.25);
@@ -125,14 +125,14 @@ def apply_theme_css(theme):
         overflow: hidden;
     }
 
-   .stButton > button {
+    .stButton > button {
         background: linear-gradient(135deg, #76b900 0%, #5a8f00 100%);
-        color: #ffffff!important;
+        color: #ffffff !important;
         border: none;
         border-radius: 12px;
         padding: 14px 32px;
-        font-size: 1rem!important;
-        font-weight: 700!important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
         letter-spacing: 0.03em;
         cursor: pointer;
         transition: all 0.25s ease;
@@ -140,12 +140,12 @@ def apply_theme_css(theme):
         width: 100%;
         text-transform: uppercase;
     }
-   .stButton > button:hover {
+    .stButton > button:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 28px rgba(118,185,0,0.55);
         background: linear-gradient(135deg, #8fd400 0%, #76b900 100%);
     }
-   .stButton > button:active {
+    .stButton > button:active {
         transform: translateY(0px);
         box-shadow: 0 2px 8px rgba(118,185,0,0.3);
     }
@@ -171,49 +171,49 @@ def apply_theme_css(theme):
         justify-content: center;
         background: transparent;
         border-radius: 8px;
-        color: #5a7a3a!important;
+        color: #5a7a3a !important;
         font-weight: 500;
         padding: 10px 24px;
         transition: all 0.2s ease;
     }
     [data-testid="stTabs"] [aria-selected="true"] {
-        background: linear-gradient(135deg, #76b900, #5a8f00)!important;
-        color: #ffffff!important;
-        font-weight: 700!important;
+        background: linear-gradient(135deg, #76b900, #5a8f00) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
     }
 
     [data-testid="stSpinner"] { color: #76b900; }
 
     /* Light mode selectbox */
     [data-testid="stSelectbox"] > div > div {
-        background: rgba(255,255,255,0.95)!important;
-        border: 1px solid rgba(118,185,0,0.35)!important;
-        border-radius: 10px!important;
-        color: #1a2e05!important;
+        background: rgba(255,255,255,0.95) !important;
+        border: 1px solid rgba(118,185,0,0.35) !important;
+        border-radius: 10px !important;
+        color: #1a2e05 !important;
     }
     [data-testid="stSelectbox"] > div > div > div {
-        color: #1a2e05!important;
+        color: #1a2e05 !important;
     }
     /* Light dropdown popover */
     [data-baseweb="popover"] [data-baseweb="menu"] {
-        background: #ffffff!important;
-        border: 1px solid rgba(118,185,0,0.35)!important;
-        border-radius: 10px!important;
-        box-shadow: 0 8px 24px rgba(118,185,0,0.12)!important;
+        background: #ffffff !important;
+        border: 1px solid rgba(118,185,0,0.35) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 8px 24px rgba(118,185,0,0.12) !important;
     }
     [data-baseweb="popover"] [role="option"] {
-        background: #ffffff!important;
-        color: #1a2e05!important;
+        background: #ffffff !important;
+        color: #1a2e05 !important;
     }
     [data-baseweb="popover"] [role="option"]:hover,
     [data-baseweb="popover"] [aria-selected="true"] {
-        background: rgba(118,185,0,0.12)!important;
-        color: #1a2e05!important;
+        background: rgba(118,185,0,0.12) !important;
+        color: #1a2e05 !important;
     }
 
     hr { border: none; border-top: 1px solid rgba(118,185,0,0.2); margin: 24px 0; }
 
-   .glass-card {
+    .glass-card {
         background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(242,249,234,0.92));
         border: 1px solid rgba(118,185,0,0.25);
         border-radius: 20px;
@@ -222,9 +222,9 @@ def apply_theme_css(theme):
         box-shadow: 0 8px 32px rgba(118,185,0,0.07), inset 0 1px 0 rgba(255,255,255,0.95);
         margin-bottom: 24px;
     }
-   .glass-card h2,.glass-card h3 { color: #1a2e05; margin-bottom: 8px; }
+    .glass-card h2, .glass-card h3 { color: #1a2e05; margin-bottom: 8px; }
 
-   .hero-banner {
+    .hero-banner {
         background: linear-gradient(135deg, rgba(118,185,0,0.10) 0%, rgba(255,255,255,0.97) 60%, rgba(242,249,234,0.97) 100%);
         border: 1px solid rgba(118,185,0,0.35);
         border-radius: 24px;
@@ -234,7 +234,7 @@ def apply_theme_css(theme):
         position: relative;
         overflow: hidden;
     }
-   .hero-banner::before {
+    .hero-banner::before {
         content: '';
         position: absolute;
         top: -50%; right: -10%;
@@ -243,10 +243,10 @@ def apply_theme_css(theme):
         pointer-events: none;
     }
 
-   .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-   .section-header h3 { color: #1a2e05; font-size: 1.25rem; font-weight: 700; margin: 0; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .section-header h3 { color: #1a2e05; font-size: 1.25rem; font-weight: 700; margin: 0; }
 
-   .section-badge {
+    .section-badge {
         background: rgba(118,185,0,0.12);
         border: 1px solid rgba(118,185,0,0.45);
         color: #4a7c00;
@@ -255,14 +255,14 @@ def apply_theme_css(theme):
         text-transform: uppercase; letter-spacing: 0.08em;
     }
 
-   .info-box {
+    .info-box {
         background: rgba(118,185,0,0.07);
         border-left: 3px solid #76b900;
         border-radius: 0 10px 10px 0;
         padding: 14px 18px; margin: 12px 0;
         color: #2d4a0e; font-size: 0.9rem; line-height: 1.6;
     }
-   .warning-box {
+    .warning-box {
         background: rgba(251,191,36,0.08);
         border-left: 3px solid #d97706;
         border-radius: 0 10px 10px 0;
@@ -275,34 +275,34 @@ def apply_theme_css(theme):
     ::-webkit-scrollbar-thumb { background: rgba(118,185,0,0.4); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(118,185,0,0.7); }
 
-   .sidebar-stat {
+    .sidebar-stat {
         background: rgba(118,185,0,0.07);
         border: 1px solid rgba(118,185,0,0.22);
         border-radius: 10px; padding: 12px 16px; margin: 8px 0;
         display: flex; justify-content: space-between; align-items: center;
     }
-   .sidebar-stat-label {
+    .sidebar-stat-label {
         color: #6b8f3a; font-size: 0.78rem; font-weight: 500;
         text-transform: uppercase; letter-spacing: 0.06em;
     }
-   .sidebar-stat-value { color: #1a2e05; font-size: 0.95rem; font-weight: 700; }
+    .sidebar-stat-value { color: #1a2e05; font-size: 0.95rem; font-weight: 700; }
 
-   .status-dot {
+    .status-dot {
         display: inline-block; width: 8px; height: 8px;
         background: #16a34a; border-radius: 50%;
         margin-right: 6px; animation: pulse-green 2s infinite;
     }
     @keyframes pulse-green {
         0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(22,163,74,0.4); }
-        50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(22,163,74,0); }
+        50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(22,163,74,0); }
     }
 
     [data-testid="stDownloadButton"] > button {
         background: linear-gradient(90deg, #ff8a00, #e52e71);
-        color: white!important;
+        color: white !important;
         border: none; border-radius: 12px;
         padding: 14px 32px;
-        font-size: 1rem!important; font-weight: 700!important;
+        font-size: 1rem !important; font-weight: 700 !important;
         letter-spacing: 0.03em; cursor: pointer;
         transition: all 0.25s ease;
         box-shadow: 0 4px 16px rgba(229,46,113,0.4);
@@ -320,14 +320,14 @@ def apply_theme_css(theme):
 </style>
 """, unsafe_allow_html=True)
 
-    else: # Dark
+    else:  # Dark
         st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
     html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
-   .stApp {
+    .stApp {
         background: linear-gradient(135deg, #0a0a0f 0%, #0d1117 50%, #0a0e1a 100%);
         color: #e2e8f0;
     }
@@ -340,10 +340,10 @@ def apply_theme_css(theme):
         background: linear-gradient(180deg, #0d1117 0%, #161b27 100%);
         border-right: 1px solid rgba(118,185,0,0.2);
     }
-    [data-testid="stSidebar"].stMarkdown h1,
-    [data-testid="stSidebar"].stMarkdown h2,
-    [data-testid="stSidebar"].stMarkdown h3,
-    [data-testid="stSidebar"].stMarkdown h4 { color: #cbd5e1; }
+    [data-testid="stSidebar"] .stMarkdown h1,
+    [data-testid="stSidebar"] .stMarkdown h2,
+    [data-testid="stSidebar"] .stMarkdown h3,
+    [data-testid="stSidebar"] .stMarkdown h4 { color: #cbd5e1; }
 
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, rgba(22,27,39,0.9), rgba(15,20,30,0.9));
@@ -358,39 +358,39 @@ def apply_theme_css(theme):
         box-shadow: 0 8px 32px rgba(118,185,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
     }
     [data-testid="stMetricLabel"] {
-        color: #94a3b8!important; font-size: 0.8rem!important;
-        font-weight: 500!important; text-transform: uppercase; letter-spacing: 0.08em;
+        color: #94a3b8 !important; font-size: 0.8rem !important;
+        font-weight: 500 !important; text-transform: uppercase; letter-spacing: 0.08em;
     }
     [data-testid="stMetricValue"] {
-        color: #f1f5f9!important; font-size: 1.6rem!important; font-weight: 700!important;
+        color: #f1f5f9 !important; font-size: 1.6rem !important; font-weight: 700 !important;
     }
-    [data-testid="stMetricDelta"] { font-size: 0.85rem!important; font-weight: 500!important; }
+    [data-testid="stMetricDelta"] { font-size: 0.85rem !important; font-weight: 500 !important; }
 
-    [data-testid="stSlider"] > div > div > div > div { background: #76b900!important; }
-   .stSlider [data-baseweb="slider"] { padding-top: 10px; }
+    [data-testid="stSlider"] > div > div > div > div { background: #76b900 !important; }
+    .stSlider [data-baseweb="slider"] { padding-top: 10px; }
 
     [data-testid="stDataFrame"] {
         border: 1px solid rgba(118,185,0,0.2);
         border-radius: 12px; overflow: hidden;
     }
 
-   .stButton > button {
+    .stButton > button {
         background: linear-gradient(135deg, #76b900 0%, #5a8f00 100%);
-        color: #0a0a0f!important;
+        color: #0a0a0f !important;
         border: none; border-radius: 12px;
         padding: 14px 32px;
-        font-size: 1rem!important; font-weight: 700!important;
+        font-size: 1rem !important; font-weight: 700 !important;
         letter-spacing: 0.03em; cursor: pointer;
         transition: all 0.25s ease;
         box-shadow: 0 4px 16px rgba(118,185,0,0.3);
         width: 100%; text-transform: uppercase;
     }
-   .stButton > button:hover {
+    .stButton > button:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 28px rgba(118,185,0,0.5);
         background: linear-gradient(135deg, #8fd400 0%, #76b900 100%);
     }
-   .stButton > button:active {
+    .stButton > button:active {
         transform: translateY(0px);
         box-shadow: 0 2px 8px rgba(118,185,0,0.3);
     }
@@ -410,68 +410,68 @@ def apply_theme_css(theme):
     [data-testid="stTabs"] [data-baseweb="tab"] {
         flex-grow: 1; justify-content: center;
         background: transparent; border-radius: 8px;
-        color: #94a3b8!important; font-weight: 500;
+        color: #94a3b8 !important; font-weight: 500;
         padding: 10px 24px; transition: all 0.2s ease;
     }
     [data-testid="stTabs"] [aria-selected="true"] {
-        background: linear-gradient(135deg, #76b900, #5a8f00)!important;
-        color: #0a0a0f!important; font-weight: 700!important;
+        background: linear-gradient(135deg, #76b900, #5a8f00) !important;
+        color: #0a0a0f !important; font-weight: 700 !important;
     }
 
     [data-testid="stSpinner"] { color: #76b900; }
 
     /* ── Dark mode selectbox: closed state ── */
     [data-testid="stSelectbox"] > div > div {
-        background: rgba(22,27,39,0.95)!important;
-        border: 1px solid rgba(118,185,0,0.35)!important;
-        border-radius: 10px!important;
-        color: #e2e8f0!important;
+        background: rgba(22,27,39,0.95) !important;
+        border: 1px solid rgba(118,185,0,0.35) !important;
+        border-radius: 10px !important;
+        color: #e2e8f0 !important;
     }
     [data-testid="stSelectbox"] > div > div > div,
     [data-testid="stSelectbox"] > div > div svg {
-        color: #e2e8f0!important;
-        fill: #e2e8f0!important;
+        color: #e2e8f0 !important;
+        fill: #e2e8f0 !important;
     }
 
     /* ── Dark mode dropdown popover/listbox ── */
     [data-baseweb="popover"],
     [data-baseweb="popover"] > div,
     [data-baseweb="popover"] [data-baseweb="menu"] {
-        background: #161b27!important;
-        border: 1px solid rgba(118,185,0,0.35)!important;
-        border-radius: 10px!important;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.6)!important;
+        background: #161b27 !important;
+        border: 1px solid rgba(118,185,0,0.35) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
     }
 
     /* Every list item — base state */
     [data-baseweb="popover"] li,
     [data-baseweb="popover"] [role="option"] {
-        background: #161b27!important;
-        color: #e2e8f0!important;
-        font-family: 'Inter', sans-serif!important;
+        background: #161b27 !important;
+        color: #e2e8f0 !important;
+        font-family: 'Inter', sans-serif !important;
     }
 
     /* Non-selected item hover */
     [data-baseweb="popover"] li:hover,
     [data-baseweb="popover"] [role="option"]:hover {
-        background: rgba(118,185,0,0.15)!important;
-        color: #e2e8f0!important;
+        background: rgba(118,185,0,0.15) !important;
+        color: #e2e8f0 !important;
     }
 
     /* Selected item — always green, never white */
     [data-baseweb="popover"] [aria-selected="true"],
     [data-baseweb="popover"] li[aria-selected="true"] {
-        background: rgba(118,185,0,0.22)!important;
-        color: #76b900!important;
-        font-weight: 600!important;
+        background: rgba(118,185,0,0.22) !important;
+        color: #76b900 !important;
+        font-weight: 600 !important;
     }
 
     /* Selected item on hover — keep green, do NOT turn white */
     [data-baseweb="popover"] [aria-selected="true"]:hover,
     [data-baseweb="popover"] li[aria-selected="true"]:hover {
-        background: rgba(118,185,0,0.30)!important;
-        color: #76b900!important;
-        font-weight: 600!important;
+        background: rgba(118,185,0,0.30) !important;
+        color: #76b900 !important;
+        font-weight: 600 !important;
     }
 
     /* Scrollbar inside dropdown */
@@ -481,7 +481,7 @@ def apply_theme_css(theme):
 
     hr { border: none; border-top: 1px solid rgba(118,185,0,0.15); margin: 24px 0; }
 
-   .glass-card {
+    .glass-card {
         background: linear-gradient(135deg, rgba(22,27,39,0.85), rgba(15,20,30,0.85));
         border: 1px solid rgba(118,185,0,0.2);
         border-radius: 20px; padding: 28px 32px;
@@ -489,16 +489,16 @@ def apply_theme_css(theme):
         box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
         margin-bottom: 24px;
     }
-   .glass-card h2,.glass-card h3 { color: #f1f5f9; margin-bottom: 8px; }
+    .glass-card h2, .glass-card h3 { color: #f1f5f9; margin-bottom: 8px; }
 
-   .hero-banner {
+    .hero-banner {
         background: linear-gradient(135deg, rgba(118,185,0,0.08) 0%, rgba(22,27,39,0.95) 60%, rgba(15,20,30,0.95) 100%);
         border: 1px solid rgba(118,185,0,0.3);
         border-radius: 24px; padding: 40px 48px; margin-bottom: 32px;
         box-shadow: 0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
         position: relative; overflow: hidden;
     }
-   .hero-banner::before {
+    .hero-banner::before {
         content: '';
         position: absolute; top: -50%; right: -10%;
         width: 400px; height: 400px;
@@ -506,10 +506,10 @@ def apply_theme_css(theme):
         pointer-events: none;
     }
 
-   .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-   .section-header h3 { color: #f1f5f9; font-size: 1.25rem; font-weight: 700; margin: 0; }
+    .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .section-header h3 { color: #f1f5f9; font-size: 1.25rem; font-weight: 700; margin: 0; }
 
-   .section-badge {
+    .section-badge {
         background: rgba(118,185,0,0.15);
         border: 1px solid rgba(118,185,0,0.4);
         color: #76b900; font-size: 0.7rem; font-weight: 700;
@@ -517,14 +517,14 @@ def apply_theme_css(theme):
         text-transform: uppercase; letter-spacing: 0.08em;
     }
 
-   .info-box {
+    .info-box {
         background: rgba(118,185,0,0.06);
         border-left: 3px solid #76b900;
         border-radius: 0 10px 10px 0;
         padding: 14px 18px; margin: 12px 0;
         color: #cbd5e1; font-size: 0.9rem; line-height: 1.6;
     }
-   .warning-box {
+    .warning-box {
         background: rgba(251,191,36,0.06);
         border-left: 3px solid #fbbf24;
         border-radius: 0 10px 10px 0;
@@ -537,40 +537,40 @@ def apply_theme_css(theme):
     ::-webkit-scrollbar-thumb { background: rgba(118,185,0,0.4); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(118,185,0,0.7); }
 
-   .sidebar-stat {
+    .sidebar-stat {
         background: rgba(118,185,0,0.07);
         border: 1px solid rgba(118,185,0,0.18);
         border-radius: 10px; padding: 12px 16px; margin: 8px 0;
         display: flex; justify-content: space-between; align-items: center;
     }
-   .sidebar-stat-label {
+    .sidebar-stat-label {
         color: #cbd5e1; font-size: 0.78rem; font-weight: 500;
         text-transform: uppercase; letter-spacing: 0.06em;
     }
-   .sidebar-stat-value { color: #f1f5f9; font-size: 0.95rem; font-weight: 700; }
+    .sidebar-stat-value { color: #f1f5f9; font-size: 0.95rem; font-weight: 700; }
 
-   .status-dot {
+    .status-dot {
         display: inline-block; width: 8px; height: 8px;
         background: #4ade80; border-radius: 50%;
         margin-right: 6px; animation: pulse-green 2s infinite;
     }
     @keyframes pulse-green {
-        0%, 100% { opacity: 1; box-shadow: 0 0 rgba(74,222,128,0.4); }
-        50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74,222,128,0); }
+        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
+        50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74,222,128,0); }
     }
 
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] label,
     [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"].stSlider label,
-    [data-testid="stSidebar"].stSelectbox label { color: #cbd5e1!important; }
+    [data-testid="stSidebar"] .stSlider label,
+    [data-testid="stSidebar"] .stSelectbox label { color: #cbd5e1 !important; }
 
     [data-testid="stDownloadButton"] > button {
         background: linear-gradient(90deg, #ff8a00, #e52e71);
-        color: white!important;
+        color: white !important;
         border: none; border-radius: 12px;
         padding: 14px 32px;
-        font-size: 1rem!important; font-weight: 700!important;
+        font-size: 1rem !important; font-weight: 700 !important;
         letter-spacing: 0.03em; cursor: pointer;
         transition: all 0.25s ease;
         box-shadow: 0 4px 16px rgba(229,46,113,0.4);
@@ -659,6 +659,7 @@ def get_plotly_layout():
             )
         )
 
+
 # ==============================
 # 🔹 Load Model (Cached)
 # ==============================
@@ -671,6 +672,7 @@ def load_nvidia_model():
     except Exception as e:
         return None
 
+
 # ==============================
 # 🔹 Fetch Stock Data (Cached)
 # ==============================
@@ -681,6 +683,7 @@ def get_stock_data(ticker='NVDA'):
         return data
     except Exception as e:
         return None
+
 
 @st.cache_data(ttl=300)
 def get_live_quote(ticker='NVDA'):
@@ -707,11 +710,13 @@ def get_live_quote(ticker='NVDA'):
     except Exception:
         return None
 
+
 # ==============================
 # 🔹 Business Days
 # ==============================
 def generate_business_days(start_date, num_days):
     return pd.bdate_range(start=start_date, periods=num_days).tolist()
+
 
 # ==============================
 # 🔹 Prediction Function
@@ -728,6 +733,7 @@ def predict_next_business_days(model, data, look_back=5, days=5):
         last_sequence = np.append(last_sequence[1:], pred, axis=0)
     predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
     return predictions
+
 
 # ==============================
 # 🔹 Chart Builders
@@ -772,7 +778,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>- Open: $%{open:.2f}<br>- High: $%{high:.2f}<br>- Low: $%{low:.2f}<br>- Close: $%{close:.2f}<extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Open: %{open:.2f}<br>High: %{high:.2f}<br>Low: %{low:.2f}<br>Close: %{close:.2f}<extra></extra>'
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
@@ -817,7 +823,8 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False
+        opacity=0.60, showlegend=False,
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: %{y:,.0f}<extra></extra>'
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -827,12 +834,13 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan', hovermode='x',
+        height=560, dragmode='pan',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
     return fig
+
 
 def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -875,7 +883,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     fig.add_hline(
         y=last_actual_price,
         line=dict(color=ref_line_color, width=1.5, dash='dot'),
-        annotation_text=f' Last Close: ${last_actual_price:.2f}',
+        annotation_text=f'  Last Close: ${last_actual_price:.2f}',
         annotation_font=dict(color=ref_font_color, size=11)
     )
 
@@ -885,10 +893,11 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
                    font=dict(size=16, color=title_color), x=0.02),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='x', showlegend=False
+        height=380, showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
+
 
 def build_returns_chart(stock_data, days=252):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -919,10 +928,11 @@ def build_returns_chart(stock_data, days=252):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='x',
+        height=320,
     ))
     fig.update_layout(**layout)
     return fig
+
 
 def build_volume_profile(stock_data, days=90):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -957,10 +967,11 @@ def build_volume_profile(stock_data, days=90):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='x', showlegend=False
+        height=280,
     ))
     fig.update_layout(**layout)
     return fig
+
 
 # ==============================
 # 🔹 Load Model & Initial Data
@@ -1010,7 +1021,7 @@ with st.sidebar:
         label_visibility='collapsed'
     )
 
-    if selected_theme!= st.session_state.theme:
+    if selected_theme != st.session_state.theme:
         st.session_state.theme = selected_theme
         st.rerun()
 
@@ -1077,6 +1088,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+
 # ==============================
 # 🔹 Hero Header
 # ==============================
@@ -1117,6 +1129,7 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 # ==============================
 # 🔹 Live Quote Strip
@@ -1213,13 +1226,13 @@ if run_prediction:
 if st.session_state.prediction_results is not None:
     r = st.session_state.prediction_results
 
-    stock_data = r['stock_data']
-    close_prices = r['close_prices']
-    predictions = r['predictions']
+    stock_data       = r['stock_data']
+    close_prices     = r['close_prices']
+    predictions      = r['predictions']
     prediction_dates = r['prediction_dates']
-    stored_num_days = r['num_days']
-    ts = r.get('timestamp', '')
-    pred_flat = predictions.flatten()
+    stored_num_days  = r['num_days']
+    ts               = r.get('timestamp', '')
+    pred_flat        = predictions.flatten()
 
     if isinstance(stock_data.columns, pd.MultiIndex):
         stock_data_display = stock_data.copy()
@@ -1228,9 +1241,9 @@ if st.session_state.prediction_results is not None:
         stock_data_display = stock_data
 
     last_actual_price = float(stock_data_display['Close'].iloc[-1])
-    final_pred_price = float(pred_flat[-1])
-    pred_change = final_pred_price - last_actual_price
-    pred_change_pct = (pred_change / last_actual_price) * 100
+    final_pred_price  = float(pred_flat[-1])
+    pred_change       = final_pred_price - last_actual_price
+    pred_change_pct   = (pred_change / last_actual_price) * 100
 
     summary_ts_color = '#64748b' if IS_DARK else '#6b8f3a'
     st.markdown(f"""
@@ -1262,10 +1275,10 @@ if st.session_state.prediction_results is not None:
     st.markdown("<br>", unsafe_allow_html=True)
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📈 Price Action & Forecast",
-        "🔮 Forecast Detail",
-        "📉 Returns Analysis",
-        "📋 Historical Data"
+        "📈  Price Action & Forecast",
+        "🔮  Forecast Detail",
+        "📉  Returns Analysis",
+        "📋  Historical Data"
     ])
 
     with tab1:
@@ -1298,12 +1311,12 @@ if st.session_state.prediction_results is not None:
         st.markdown("<br>", unsafe_allow_html=True)
 
         pred_df = pd.DataFrame({
-            'Business Day': [f"Day {i+1}" for i in range(stored_num_days)],
-            'Date': [d.strftime('%A, %b %d %Y') for d in prediction_dates],
+            'Business Day':   [f"Day {i+1}" for i in range(stored_num_days)],
+            'Date':           [d.strftime('%A, %b %d %Y') for d in prediction_dates],
             'Predicted Price':[f"${p:.2f}" for p in pred_flat],
             'Change vs Close':[f"{p - last_actual_price:+.2f}" for p in pred_flat],
-            'Change %': [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" for p in pred_flat],
-            'Signal': ['🟢 BUY' if p >= last_actual_price else '🔴 SELL' for p in pred_flat]
+            'Change %':       [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" for p in pred_flat],
+            'Signal':         ['🟢 BUY' if p >= last_actual_price else '🔴 SELL' for p in pred_flat]
         })
 
         st.markdown("""
@@ -1343,7 +1356,7 @@ if st.session_state.prediction_results is not None:
         })
 
         close_s = stock_data_display['Close'].squeeze()
-        ret_1y = close_s.tail(252).pct_change().dropna() * 100
+        ret_1y  = close_s.tail(252).pct_change().dropna() * 100
 
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
@@ -1392,8 +1405,8 @@ if st.session_state.prediction_results is not None:
 
 else:
     placeholder_h2 = '#f1f5f9' if IS_DARK else '#1a2e05'
-    placeholder_p = '#64748b' if IS_DARK else '#5a7a3a'
-    placeholder_b = '#76b900' if IS_DARK else '#4a7c00'
+    placeholder_p  = '#64748b' if IS_DARK else '#5a7a3a'
+    placeholder_b  = '#76b900' if IS_DARK else '#4a7c00'
 
     st.markdown(f"""
     <div class='glass-card' style='text-align:center; padding: 60px 40px;'>
