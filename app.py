@@ -770,9 +770,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # ── Change 1: Custom hovertemplate for candlestick ──
-    # Centered bold date header, then Open/High/Low/Close rows,
-    # keeping the OHLC symbol (the candle glyph) but removing the word "OHLC"
+    # CHANGE 1: Added hovertemplate to Candlestick trace
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
@@ -781,18 +779,12 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertext=[
-            f"<b style='display:block;text-align:center;'>{pd.Timestamp(d).strftime('%b %-d, %Y')}</b>"
-            for d in df.index
-        ],
         hovertemplate=(
-            "<span style='display:block;text-align:center;font-weight:700;font-size:13px;'>"
-            "%{hovertext}</span><br>"
-            "Open : <b>$%{open:.2f}</b><br>"
-            "High : <b>$%{high:.2f}</b><br>"
-            "Low : <b>$%{low:.2f}</b><br>"
-            "Close : <b>$%{close:.2f}</b>"
-            "<extra></extra>"
+            'Open: $%{open:.2f}<br>'
+            'High: $%{high:.2f}<br>'
+            'Low: $%{low:.2f}<br>'
+            'Close: $%{close:.2f}'
+            '<extra></extra>'
         )
     ), row=1, col=1)
 
@@ -800,14 +792,17 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
+    # CHANGE 1: Added hovertemplate to MA traces for consistency in unified hover
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90
+        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
+        hovertemplate='MA 20: %{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90
+        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
+        hovertemplate='MA 50: %{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -824,21 +819,25 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             name='Forecast Band', showlegend=False, hoverinfo='skip'
         ), row=1, col=1)
 
+        # CHANGE 1: Added hovertemplate to Forecast trace
         fig.add_trace(go.Scatter(
             x=pred_x, y=pred_y, name='Forecast',
             line=dict(color='#76b900', width=2.5, dash='dash'),
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
+            hovertemplate='Forecast: $%{y:.2f}<extra></extra>'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
                   for c, o in zip(close_series, df['Open'].squeeze())]
 
+    # CHANGE 1: Added hovertemplate to Volume trace
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False
+        opacity=0.60, showlegend=False,
+        hovertemplate='Volume: %{y:,.0f}<extra></extra>'
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -886,15 +885,13 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         line=dict(color='rgba(0,0,0,0)'),
         showlegend=False, hoverinfo='skip'
     ))
-
-    # ── Change 2: Remove duplicate date — keep only "Apr 15, 2026" format ──
     fig.add_trace(go.Scatter(
         x=dates_full, y=prices_full, name='Forecast',
         line=dict(color='#76b900', width=2.5),
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        hovertemplate='<b>%{x|%b %-d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
         y=last_actual_price,
@@ -904,12 +901,13 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     )
 
     layout = dict(**PLOTLY_LAYOUT)
+    # CHANGE 2: Changed hovermode from 'x unified' to 'closest' to fix duplicate date
     layout.update(dict(
         title=dict(text='<b>Forecast · Next Business Days</b>',
                    font=dict(size=16, color=title_color), x=0.02),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='x unified', showlegend=False
+        height=380, hovermode='closest', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -935,17 +933,17 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        # ── Change 3a: Remove duplicate date from returns tooltip ──
-        hovertemplate='Date: <b>%{x|%b %-d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
+    # CHANGE 3: Changed hovermode from 'x unified' to 'closest' to fix duplicate date
     layout.update(dict(
         title=dict(text='<b>Daily Returns (1Y)</b>',
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='x unified',
+        height=320, hovermode='closest',
     ))
     fig.update_layout(**layout)
     return fig
@@ -975,17 +973,17 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        # ── Change 3b: Remove duplicate date from volume tooltip ──
-        hovertemplate='Date: <b>%{x|%b %-d, %Y}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
+    # CHANGE 3: Changed hovermode from 'x unified' to 'closest' to fix duplicate date
     layout.update(dict(
         title=dict(text='<b>Trading Volume (90D)</b>',
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='x unified', showlegend=False
+        height=280, hovermode='closest', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
