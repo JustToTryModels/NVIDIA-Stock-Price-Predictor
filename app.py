@@ -770,78 +770,30 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # ── Candlestick ────────────────────────────────────────────────────────
-    open_s  = df['Open'].squeeze()
-    high_s  = df['High'].squeeze()
-    low_s   = df['Low'].squeeze()
-    close_s = df['Close'].squeeze()
-
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=open_s,
-        high=high_s,
-        low=low_s,
-        close=close_s,
-        name='Price',
+        open=df['Open'].squeeze(), high=df['High'].squeeze(),
+        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
+        name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5,
-        hoverinfo='none',
+        whiskerwidth=0.5
     ), row=1, col=1)
 
-    # ── Custom Tooltip Overlay ──────────────────────────────────────────────
-    ma20 = close_s.rolling(window=20).mean()
-    ma50 = close_s.rolling(window=50).mean()
+    close_series = df['Close'].squeeze()
+    ma20 = close_series.rolling(window=20).mean()
+    ma50 = close_series.rolling(window=50).mean()
 
-    # Build custom data with date, open, high, low, close, ma20, ma50
-    custom_data = []
-    hover_text = []
-    for idx, date in enumerate(df.index):
-        o = float(open_s.iloc[idx])
-        h = float(high_s.iloc[idx])
-        l = float(low_s.iloc[idx])
-        c = float(close_s.iloc[idx])
-        m20 = float(ma20.iloc[idx]) if pd.notna(ma20.iloc[idx]) else None
-        m50 = float(ma50.iloc[idx]) if pd.notna(ma50.iloc[idx]) else None
-
-        # Build tooltip text
-        tooltip = f"<b style='text-align:center;display:block;'>{date.strftime('%A, %b %d, %Y')}</b><br>"
-        tooltip += f"<b>Open :</b> ${o:.2f}<br>"
-        tooltip += f"<b>High :</b> ${h:.2f}<br>"
-        tooltip += f"<b>Low :</b> ${l:.2f}<br>"
-        tooltip += f"<b>Close :</b> ${c:.2f}<br>"
-        if m20 is not None:
-            tooltip += f"<b>MA20 :</b> ${m20:.2f}<br>"
-        if m50 is not None:
-            tooltip += f"<b>MA50 :</b> ${m50:.2f}"
-
-        hover_text.append(tooltip)
-
-    fig.add_trace(go.Scatter(
-        x=df.index,
-        y=close_s,
-        mode='markers',
-        marker=dict(opacity=0, size=12),
-        text=hover_text,
-        name='',
-        showlegend=False,
-        hovertemplate='%{text}<extra></extra>'
-    ), row=1, col=1)
-
-    # ── Moving Averages ────────────────────────────────────────────────────
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>MA 20</b><br>%{x|%b %d, %Y}<br>$%{y:.2f}<extra></extra>'
+        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>MA 50</b><br>%{x|%b %d, %Y}<br>$%{y:.2f}<extra></extra>'
+        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90
     ), row=1, col=1)
 
-    # ── Forecast ───────────────────────────────────────────────────────────
     if predictions is not None and prediction_dates is not None:
         pred_flat = predictions.flatten()
         last_actual_price = float(df['Close'].iloc[-1])
@@ -862,18 +814,15 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='<b>Forecast</b><br>%{x|%b %d, %Y}<br>$%{y:.2f}<extra></extra>'
         ), row=1, col=1)
 
-    # ── Volume bars ────────────────────────────────────────────────────────
     colors_vol = [vol_up if c >= o else vol_dn
-                  for c, o in zip(close_s, df['Open'].squeeze())]
+                  for c, o in zip(close_series, df['Open'].squeeze())]
 
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False,
-        hovertemplate='<b>Volume</b><br>%{x|%b %d, %Y}<br>%{y:,.0f}<extra></extra>'
+        opacity=0.60, showlegend=False
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
