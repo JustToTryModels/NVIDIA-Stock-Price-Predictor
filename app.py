@@ -770,7 +770,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # CHANGE 1: Added hovertemplate to Candlestick trace
+    # *** FIX: Removed the 'hovertemplate' argument from go.Candlestick as it's not supported ***
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
@@ -778,21 +778,14 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5,
-        hovertemplate=(
-            'Open: $%{open:.2f}<br>'
-            'High: $%{high:.2f}<br>'
-            'Low: $%{low:.2f}<br>'
-            'Close: $%{close:.2f}'
-            '<extra></extra>'
-        )
+        whiskerwidth=0.5
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
-    # CHANGE 1: Added hovertemplate to MA traces for consistency in unified hover
+    # These hovertemplates are valid and work with 'hovermode: x unified'
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
         line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
@@ -819,7 +812,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             name='Forecast Band', showlegend=False, hoverinfo='skip'
         ), row=1, col=1)
 
-        # CHANGE 1: Added hovertemplate to Forecast trace
         fig.add_trace(go.Scatter(
             x=pred_x, y=pred_y, name='Forecast',
             line=dict(color='#76b900', width=2.5, dash='dash'),
@@ -832,7 +824,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     colors_vol = [vol_up if c >= o else vol_dn
                   for c, o in zip(close_series, df['Open'].squeeze())]
 
-    # CHANGE 1: Added hovertemplate to Volume trace
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
@@ -901,7 +892,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     )
 
     layout = dict(**PLOTLY_LAYOUT)
-    # CHANGE 2: Changed hovermode from 'x unified' to 'closest' to fix duplicate date
+    # This remains 'closest' to fix the duplicate date issue
     layout.update(dict(
         title=dict(text='<b>Forecast · Next Business Days</b>',
                    font=dict(size=16, color=title_color), x=0.02),
@@ -937,7 +928,7 @@ def build_returns_chart(stock_data, days=252):
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
-    # CHANGE 3: Changed hovermode from 'x unified' to 'closest' to fix duplicate date
+    # This remains 'closest' to fix the duplicate date issue
     layout.update(dict(
         title=dict(text='<b>Daily Returns (1Y)</b>',
                    font=dict(size=16, color=title_color), x=0.02),
@@ -977,7 +968,7 @@ def build_volume_profile(stock_data, days=90):
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
-    # CHANGE 3: Changed hovermode from 'x unified' to 'closest' to fix duplicate date
+    # This remains 'closest' to fix the duplicate date issue
     layout.update(dict(
         title=dict(text='<b>Trading Volume (90D)</b>',
                    font=dict(size=16, color=title_color), x=0.02),
