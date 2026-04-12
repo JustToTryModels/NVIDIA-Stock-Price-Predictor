@@ -442,25 +442,38 @@ def apply_theme_css(theme):
         border-radius: 10px !important;
         box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
     }
-    /* Every list item */
+
+    /* Every list item — base state */
     [data-baseweb="popover"] li,
     [data-baseweb="popover"] [role="option"] {
         background: #161b27 !important;
         color: #e2e8f0 !important;
         font-family: 'Inter', sans-serif !important;
     }
-    /* Hover & selected states */
+
+    /* Non-selected item hover */
     [data-baseweb="popover"] li:hover,
     [data-baseweb="popover"] [role="option"]:hover {
         background: rgba(118,185,0,0.15) !important;
-        color: #f1f5f9 !important;
+        color: #e2e8f0 !important;
     }
+
+    /* Selected item — always green, never white */
     [data-baseweb="popover"] [aria-selected="true"],
     [data-baseweb="popover"] li[aria-selected="true"] {
         background: rgba(118,185,0,0.22) !important;
         color: #76b900 !important;
         font-weight: 600 !important;
     }
+
+    /* Selected item on hover — keep green, do NOT turn white */
+    [data-baseweb="popover"] [aria-selected="true"]:hover,
+    [data-baseweb="popover"] li[aria-selected="true"]:hover {
+        background: rgba(118,185,0,0.30) !important;
+        color: #76b900 !important;
+        font-weight: 600 !important;
+    }
+
     /* Scrollbar inside dropdown */
     [data-baseweb="popover"] ::-webkit-scrollbar { width: 4px; }
     [data-baseweb="popover"] ::-webkit-scrollbar-track { background: #0d1117; }
