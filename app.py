@@ -770,43 +770,60 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # Construct the perfectly formatted custom tooltip for Candlesticks
+    close_series = df['Close'].squeeze()
+    ma20 = close_series.rolling(window=20).mean()
+    ma50 = close_series.rolling(window=50).mean()
+
+    # Build custom hover text incorporating Date, OHLC, and Moving Averages
     hover_texts = []
-    for d, o, h, l, c in zip(df.index, df['Open'].squeeze(), df['High'].squeeze(), df['Low'].squeeze(), df['Close'].squeeze()):
-        hover_texts.append(
-            f"<center><b>{d.strftime('%b %d, %Y')}</b></center>"
+    for i in range(len(df)):
+        d_str = df.index[i].strftime('%b %d, %Y')
+        o = df['Open'].iloc[i]
+        h = df['High'].iloc[i]
+        l = df['Low'].iloc[i]
+        c = df['Close'].iloc[i]
+        m20 = ma20.iloc[i]
+        m50 = ma50.iloc[i]
+
+        m20_s = f"{m20:.2f}" if pd.notna(m20) else "N/A"
+        m50_s = f"{m50:.2f}" if pd.notna(m50) else "N/A"
+
+        htext = (
+            f"<div style='text-align: center'><b>{d_str}</b></div>"
             f"- Open : {o:.2f}<br>"
             f"- High : {h:.2f}<br>"
             f"- Low : {l:.2f}<br>"
-            f"- Close : {c:.2f}"
+            f"- Close : {c:.2f}<br>"
+            f"- MA20 : {m20_s}<br>"
+            f"- MA50 : {m50_s}"
         )
+        hover_texts.append(htext)
 
+    # Added name=' ' and hoverinfo='text+name' to preserve the OHLC color symbol 
+    # without displaying the "OHLC" word.
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
         low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name=' ', # Setting to single space removes 'OHLC' string but preserves the trace symbol
-        hovertext=hover_texts,
-        hoverinfo='text',
+        name=' ',
+        text=hover_texts,
+        hoverinfo='text+name',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5
     ), row=1, col=1)
 
-    close_series = df['Close'].squeeze()
-    ma20 = close_series.rolling(window=20).mean()
-    ma50 = close_series.rolling(window=50).mean()
-
+    # Disable hover on the MA lines so they don't produce extra boxes
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
         line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>MA 20</b>: $%{y:.2f}<extra></extra>'
+        hoverinfo='skip'
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
         line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>MA 50</b>: $%{y:.2f}<extra></extra>'
+        hoverinfo='skip'
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -829,7 +846,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='<b>Forecast</b>: $%{y:.2f}<extra></extra>'
+            hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast: <b>$%{y:.2f}</b><extra></extra>'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
@@ -839,7 +856,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
         opacity=0.60, showlegend=False,
-        hovertemplate='<b>Volume</b>: %{y:,.0f}<extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -849,7 +866,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan', hovermode='closest', # changed to 'closest' to remove unified top header
+        height=560, dragmode='pan', hovermode='closest',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
@@ -908,7 +925,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
                    font=dict(size=16, color=title_color), x=0.02),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='closest', showlegend=False # Set to 'closest' to remove unified date header
+        height=380, hovermode='closest', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -943,7 +960,7 @@ def build_returns_chart(stock_data, days=252):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='closest', # Set to 'closest' to remove unified date header
+        height=320, hovermode='closest',
     ))
     fig.update_layout(**layout)
     return fig
@@ -982,7 +999,7 @@ def build_volume_profile(stock_data, days=90):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='closest', showlegend=False # Set to 'closest' to remove unified date header
+        height=280, hovermode='closest', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
