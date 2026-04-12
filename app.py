@@ -770,14 +770,27 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
+    # Custom hovertemplate for candlestick
+    candlestick_hovertemplate = (
+        '<b>%{x|%b %d, %Y}</b><br>'
+        'Open: $%{open:.2f}<br>'
+        'High: $%{high:.2f}<br>'
+        'Low: $%{low:.2f}<br>'
+        'Close: $%{close:.2f}<br>'
+        '<extra></extra>'
+    )
+
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name='OHLC',
+        open=df['Open'].squeeze(), 
+        high=df['High'].squeeze(),
+        low=df['Low'].squeeze(), 
+        close=df['Close'].squeeze(),
+        name='',  # Remove "OHLC" from legend
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5
+        whiskerwidth=0.5,
+        hovertemplate=candlestick_hovertemplate
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
