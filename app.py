@@ -770,28 +770,25 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # Custom hovertemplate for candlestick
-    candlestick_hovertemplate = (
-        '<b>%{x|%b %d, %Y}</b><br>'
-        'Open: $%{open:.2f}<br>'
-        'High: $%{high:.2f}<br>'
-        'Low: $%{low:.2f}<br>'
-        'Close: $%{close:.2f}<br>'
-        '<extra></extra>'
-    )
-
+    # ── Candlestick with custom tooltip ──────────────────────────────────────
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=df['Open'].squeeze(), 
-        high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), 
-        close=df['Close'].squeeze(),
-        name='',  # Remove "OHLC" from legend
+        open=df['Open'].squeeze(), high=df['High'].squeeze(),
+        low=df['Low'].squeeze(),   close=df['Close'].squeeze(),
+        name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertemplate=candlestick_hovertemplate
+        hovertemplate=(
+            "<b>%{x|%b %d, %Y}</b><br>"
+            "Open : %{open:.2f}<br>"
+            "High : %{high:.2f}<br>"
+            "Low : %{low:.2f}<br>"
+            "Close : %{close:.2f}"
+            "<extra></extra>"
+        )
     ), row=1, col=1)
+    # ─────────────────────────────────────────────────────────────────────────
 
     close_series = df['Close'].squeeze()
     ma20 = close_series.rolling(window=20).mean()
@@ -845,7 +842,9 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan', hovermode='x unified',
+        height=560, dragmode='pan',
+        # ── switched from 'x unified' so per-trace hovertemplate is respected ──
+        hovermode='closest',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
