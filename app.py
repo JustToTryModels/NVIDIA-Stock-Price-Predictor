@@ -770,49 +770,32 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # ── Candlestick: disable its own hover, use invisible Scatter overlay instead ──
-    fig.add_trace(go.Candlestick(
-        x=df.index,
-        open=df['Open'].squeeze(),
-        high=df['High'].squeeze(),
-        low=df['Low'].squeeze(),
-        close=df['Close'].squeeze(),
-        name='OHLC',
-        increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
-        decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5,
-        hoverinfo='none',       # disable candlestick's built-in tooltip
-    ), row=1, col=1)
-
-    # ── Invisible Scatter overlay: carries the fully custom OHLC tooltip ──
+    # ── FIX 1: Custom candlestick tooltip ──
+    # Build per-point customdata for the OHLC hover
     open_vals  = df['Open'].squeeze().values
     high_vals  = df['High'].squeeze().values
     low_vals   = df['Low'].squeeze().values
     close_vals = df['Close'].squeeze().values
 
-    # customdata columns: [open, high, low, close]
-    custom = np.column_stack([open_vals, high_vals, low_vals, close_vals])
-
-    # Pre-format the date labels in Python so no strftime format issues
-    date_labels = [pd.Timestamp(d).strftime('%b %d, %Y') for d in df.index]
-
-    fig.add_trace(go.Scatter(
+    fig.add_trace(go.Candlestick(
         x=df.index,
-        y=close_vals,
-        mode='markers',
-        marker=dict(opacity=0, size=12, color='rgba(0,0,0,0)'),
-        customdata=custom,
-        text=date_labels,
-        name='',
-        showlegend=False,
+        open=open_vals,
+        high=high_vals,
+        low=low_vals,
+        close=close_vals,
+        name='OHLC',
+        increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
+        decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
+        whiskerwidth=0.5,
+        # Center-bold date header, then full-form OHLC labels
         hovertemplate=(
-            "<b>%{text}</b><br>"
-            "Open : <b>$%{customdata[0]:.2f}</b><br>"
-            "High : <b>$%{customdata[1]:.2f}</b><br>"
-            "Low  : <b>$%{customdata[2]:.2f}</b><br>"
-            "Close : <b>$%{customdata[3]:.2f}</b>"
-            "<extra></extra>"
-        ),
+            '<b style="font-size:13px">%{x|%b %d, %Y}</b><br>'
+            '<b>Open  :</b> $%{open:.2f}<br>'
+            '<b>High  :</b> $%{high:.2f}<br>'
+            '<b>Low   :</b> $%{low:.2f}<br>'
+            '<b>Close :</b> $%{close:.2f}'
+            '<extra></extra>'
+        )
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
@@ -898,9 +881,6 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
 
     colors = [start_color] + [up_color if p >= last_actual_price else dn_color for p in pred_flat]
 
-    # Pre-format date labels in Python to avoid any strftime format issues
-    date_labels = [pd.Timestamp(d).strftime('%b %d, %Y') for d in dates_full]
-
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=dates_full, y=prices_full,
@@ -909,17 +889,16 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         showlegend=False, hoverinfo='skip'
     ))
 
-    # ── Change 2: use Python-formatted date labels via `text=` to avoid duplicate date ──
+    # ── FIX 2: Remove duplicate date from forecast tooltip ──
+    # Only show "Apr 15, 2026" format (no "Apr15" prefix from x unified)
     fig.add_trace(go.Scatter(
         x=dates_full, y=prices_full, name='Forecast',
         line=dict(color='#76b900', width=2.5),
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        text=date_labels,
-        hovertemplate='<b>%{text}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
-
     fig.add_hline(
         y=last_actual_price,
         line=dict(color=ref_line_color, width=1.5, dash='dot'),
@@ -933,7 +912,8 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
                    font=dict(size=16, color=title_color), x=0.02),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='x unified', showlegend=False
+        # ── Switch to 'closest' so the unified-x header doesn't duplicate the date ──
+        height=380, hovermode='closest', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -954,17 +934,13 @@ def build_returns_chart(stock_data, days=252):
     title_color = '#f1f5f9' if IS_DARK else '#1a2e05'
     colors = [up_color if r >= 0 else dn_color for r in returns]
 
-    # Pre-format date labels in Python to avoid duplicate date in tooltip
-    date_labels = [pd.Timestamp(d).strftime('%b %d, %Y') for d in returns.index]
-
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        text=date_labels,
-        # ── Change 3a: single clean date using Python-formatted text label ──
-        hovertemplate='<b>%{text}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
+        # ── FIX 3a: Remove duplicate date — show only Date + Return in tooltip ──
+        hovertemplate='<b>Date:</b> %{x|%b %d, %Y}<br><b>Return:</b> %{y:.2f}%<extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -973,7 +949,8 @@ def build_returns_chart(stock_data, days=252):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='x unified',
+        # ── Switch to 'closest' to avoid the duplicate date header ──
+        height=320, hovermode='closest',
     ))
     fig.update_layout(**layout)
     return fig
@@ -997,18 +974,14 @@ def build_volume_profile(stock_data, days=90):
         line_color = '#2563eb'
         title_color = '#1a2e05'
 
-    # Pre-format date labels in Python to avoid duplicate date in tooltip
-    date_labels = [pd.Timestamp(d).strftime('%b %d, %Y') for d in df.index]
-
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df.index, y=volume,
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        text=date_labels,
-        # ── Change 3b: single clean date using Python-formatted text label ──
-        hovertemplate='<b>%{text}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>'
+        # ── FIX 3b: Remove duplicate date — show only Date + Volume in tooltip ──
+        hovertemplate='<b>Date:</b> %{x|%b %d, %Y}<br><b>Volume:</b> %{y:,.0f}<extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -1017,7 +990,8 @@ def build_volume_profile(stock_data, days=90):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='x unified', showlegend=False
+        # ── Switch to 'closest' to avoid the duplicate date header ──
+        height=280, hovermode='closest', showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
