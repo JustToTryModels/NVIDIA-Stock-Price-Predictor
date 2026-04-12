@@ -770,14 +770,18 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # *** FIX: Removed the 'hovertemplate' argument from go.Candlestick as it's not a valid property. ***
-    # This resolves the ValueError and allows the app to run.
-    # The default hover for candlesticks will be used.
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
         low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name='OHLC',
+        name=' ',
+        hovertemplate=(
+            "<div style='text-align: center'><b>%{x|%b %d, %Y}</b></div>"
+            "- Open : %{open:.2f}<br>"
+            "- High : %{high:.2f}<br>"
+            "- Low : %{low:.2f}<br>"
+            "- Close : %{close:.2f}"
+        ),
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5
@@ -787,17 +791,14 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
-    # The <extra></extra> tag here removes the trace name from the tooltip for a cleaner look.
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA 20: %{y:.2f}<extra></extra>'
+        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA 50: %{y:.2f}<extra></extra>'
+        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -820,7 +821,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='Forecast: $%{y:.2f}<extra></extra>'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
@@ -829,8 +829,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False,
-        hovertemplate='Volume: %{y:,.0f}<extra></extra>'
+        opacity=0.60, showlegend=False
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -840,7 +839,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan', hovermode='x unified',
+        height=560, dragmode='pan', hovermode='closest',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
@@ -894,7 +893,6 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     )
 
     layout = dict(**PLOTLY_LAYOUT)
-    # FIX for Change #2: 'closest' mode prevents the duplicate date in the tooltip header.
     layout.update(dict(
         title=dict(text='<b>Forecast · Next Business Days</b>',
                    font=dict(size=16, color=title_color), x=0.02),
@@ -930,7 +928,6 @@ def build_returns_chart(stock_data, days=252):
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
-    # FIX for Change #3: 'closest' mode prevents the duplicate date in the tooltip header.
     layout.update(dict(
         title=dict(text='<b>Daily Returns (1Y)</b>',
                    font=dict(size=16, color=title_color), x=0.02),
@@ -970,7 +967,6 @@ def build_volume_profile(stock_data, days=90):
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
-    # FIX for Change #3: 'closest' mode prevents the duplicate date in the tooltip header.
     layout.update(dict(
         title=dict(text='<b>Trading Volume (90D)</b>',
                    font=dict(size=16, color=title_color), x=0.02),
