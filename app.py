@@ -770,7 +770,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # Candlestick with custom hovertemplate (no "OHLC" label)
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
@@ -778,14 +777,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5,
-        hovertemplate=(
-            "<b>%{x|%b %d, %Y}</b><br>" +
-            "Open: %{open:.2f}<br>" +
-            "High: %{high:.2f}<br>" +
-            "Low: %{low:.2f}<br>" +
-            "Close: %{close:.2f}<extra></extra>"
-        )
+        whiskerwidth=0.5
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
@@ -822,7 +814,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast: $%{y:.2f}<extra></extra>'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
@@ -831,8 +822,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False,
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: %{y:,.0f}<extra></extra>'
+        opacity=0.60, showlegend=False
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -966,7 +956,7 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
