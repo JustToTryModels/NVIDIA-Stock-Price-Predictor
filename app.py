@@ -770,19 +770,40 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
+    # --- Tooltip helpers for OHLC (to match requested format & remove "OHLC" text) ---
+    open_s = df['Open'].squeeze()
+    high_s = df['High'].squeeze()
+    low_s = df['Low'].squeeze()
+    close_s = df['Close'].squeeze()
+
+    rng = (high_s - low_s).to_numpy()
+    chg = (close_s - open_s).to_numpy()
+    chg_pct = np.where(open_s.to_numpy() != 0, (chg / open_s.to_numpy()) * 100.0, 0.0)
+
+    ohlc_customdata = np.column_stack([rng, chg, chg_pct])
+
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
+        open=open_s, high=high_s,
+        low=low_s, close=close_s,
         name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5
+        whiskerwidth=0.5,
+        customdata=ohlc_customdata,
+        hovertemplate=(
+            "- Open: <b>$%{open:.2f}</b><br>"
+            "- High: <b>$%{high:.2f}</b><br>"
+            "- Low: <b>$%{low:.2f}</b><br>"
+            "- Close: <b>$%{close:.2f}</b><br>"
+            "- Range: <b>$%{customdata[0]:.2f}</b><br>"
+            "- Change: <b>$%{customdata[1]:+.2f}</b> (<b>%{customdata[2]:+.2f}%</b>)"
+            "<extra> </extra>"
+        )
     ), row=1, col=1)
 
-    close_series = df['Close'].squeeze()
-    ma20 = close_series.rolling(window=20).mean()
-    ma50 = close_series.rolling(window=50).mean()
+    ma20 = close_s.rolling(window=20).mean()
+    ma50 = close_s.rolling(window=50).mean()
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
@@ -817,7 +838,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
-                  for c, o in zip(close_series, df['Open'].squeeze())]
+                  for c, o in zip(close_s, df['Open'].squeeze())]
 
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
@@ -835,6 +856,11 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         height=560, dragmode='pan', hovermode='x unified',
     ))
     fig.update_layout(**layout)
+
+    # --- Date format in unified tooltip header (e.g., "Feb 4, 2026") + centered header ---
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
+    fig.update_layout(hoverlabel=dict(**PLOTLY_LAYOUT['hoverlabel'], align='center'))
+
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
     return fig
@@ -876,7 +902,8 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
+        # Removed repeated date inside hover; preserve full date via xaxis hoverformat.
+        hovertemplate='Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
         y=last_actual_price,
@@ -894,6 +921,9 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         height=380, hovermode='x unified', showlegend=False
     ))
     fig.update_layout(**layout)
+
+    # Full date in the unified tooltip header (prevents "Apr 15" + "Apr 15, 2026" duplication)
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
     return fig
 
 
@@ -917,7 +947,8 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
+        # Removed repeated date inside hover; preserve date via unified header.
+        hovertemplate='Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -929,6 +960,9 @@ def build_returns_chart(stock_data, days=252):
         height=320, hovermode='x unified',
     ))
     fig.update_layout(**layout)
+
+    # Full date in the unified tooltip header (prevents duplication)
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
     return fig
 
 
@@ -956,7 +990,8 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
+        # Removed repeated date inside hover; preserve date via unified header.
+        hovertemplate='Vol: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -968,6 +1003,9 @@ def build_volume_profile(stock_data, days=90):
         height=280, hovermode='x unified', showlegend=False
     ))
     fig.update_layout(**layout)
+
+    # Full date in the unified tooltip header (prevents duplication)
+    fig.update_xaxes(hoverformat='%b %-d, %Y')
     return fig
 
 
