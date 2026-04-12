@@ -769,29 +769,29 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         vol_up, vol_dn = '#16a34a', '#dc2626'
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
-        
-    # ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-    # CORRECTED CODE: Added custom hovertemplate for candlestick
-    # ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-    hovertemplate_candlestick = (
-        '<div style="text-align:center;"><b>%{x|%b %d, %Y}</b></div>' +
-        'Open: %{open:$.2f}<br>' +
-        'High: %{high:$.2f}<br>' +
-        'Low: %{low:$.2f}<br>' +
-        'Close: %{close:$.2f}' +
-        '<extra></extra>' # This removes the trace name from the hover info
-    )
 
+    # ── Candlestick with custom tooltip ──────────────────────────────────────
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name='OHLC',
+        open=df['Open'].squeeze(),
+        high=df['High'].squeeze(),
+        low=df['Low'].squeeze(),
+        close=df['Close'].squeeze(),
+        name='',                          # removes "OHLC" from tooltip header
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertemplate=hovertemplate_candlestick
+        hovertemplate=(
+            '<b style="font-size:13px;">%{x|%A, %b %d, %Y}</b><br>'
+            '─────────────────<br>'
+            'Open :  $%{open:.2f}<br>'
+            'High :  $%{high:.2f}<br>'
+            'Low :  $%{low:.2f}<br>'
+            'Close :  $%{close:.2f}'
+            '<extra></extra>'             # hides the trace name box
+        )
     ), row=1, col=1)
+    # ─────────────────────────────────────────────────────────────────────────
 
     close_series = df['Close'].squeeze()
     ma20 = close_series.rolling(window=20).mean()
