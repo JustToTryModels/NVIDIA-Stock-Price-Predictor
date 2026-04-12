@@ -770,48 +770,12 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
+    # ── Candlestick ────────────────────────────────────────────────────────
     open_s  = df['Open'].squeeze()
     high_s  = df['High'].squeeze()
     low_s   = df['Low'].squeeze()
     close_s = df['Close'].squeeze()
 
-    # Compute MAs so we can embed them in customdata
-    ma20 = close_s.rolling(window=20).mean()
-    ma50 = close_s.rolling(window=50).mean()
-
-    # ── Build customdata: [open, high, low, close, ma20, ma50] ────────────
-    # Use NaN where MA is not yet computed; format conditionally in template
-    ma20_vals = ma20.values
-    ma50_vals = ma50.values
-
-    custom = np.stack(
-        [open_s.values, high_s.values, low_s.values, close_s.values,
-         ma20_vals, ma50_vals],
-        axis=-1
-    )
-
-    # ── Single invisible scatter that carries the full unified tooltip ─────
-    # We use hovermode='closest' so only ONE tooltip fires per hover point.
-    # The template checks ma20/ma50 for NaN and conditionally shows them.
-    fig.add_trace(go.Scatter(
-        x=df.index,
-        y=close_s,
-        mode='markers',
-        marker=dict(opacity=0, size=14),
-        customdata=custom,
-        name='',
-        showlegend=False,
-        hovertemplate=(
-            '<b style="display:block; text-align:center;">%{x|%a, %b %d, %Y}</b><br>'
-            '<b>Open :</b>  $%{customdata[0]:.2f}<br>'
-            '<b>High :</b>  $%{customdata[1]:.2f}<br>'
-            '<b>Low :</b>   $%{customdata[2]:.2f}<br>'
-            '<b>Close :</b> $%{customdata[3]:.2f}'
-            '<extra></extra>'
-        )
-    ), row=1, col=1)
-
-    # ── Candlestick (hoverinfo off — tooltip comes from scatter above) ─────
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=open_s,
@@ -825,17 +789,56 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         hoverinfo='none',
     ), row=1, col=1)
 
-    # ── Moving Averages — their own simple tooltip ─────────────────────────
+    # ── Custom Tooltip Overlay ──────────────────────────────────────────────
+    ma20 = close_s.rolling(window=20).mean()
+    ma50 = close_s.rolling(window=50).mean()
+
+    # Build custom data with date, open, high, low, close, ma20, ma50
+    custom_data = []
+    hover_text = []
+    for idx, date in enumerate(df.index):
+        o = float(open_s.iloc[idx])
+        h = float(high_s.iloc[idx])
+        l = float(low_s.iloc[idx])
+        c = float(close_s.iloc[idx])
+        m20 = float(ma20.iloc[idx]) if pd.notna(ma20.iloc[idx]) else None
+        m50 = float(ma50.iloc[idx]) if pd.notna(ma50.iloc[idx]) else None
+
+        # Build tooltip text
+        tooltip = f"<b style='text-align:center;display:block;'>{date.strftime('%A, %b %d, %Y')}</b><br>"
+        tooltip += f"<b>Open :</b> ${o:.2f}<br>"
+        tooltip += f"<b>High :</b> ${h:.2f}<br>"
+        tooltip += f"<b>Low :</b> ${l:.2f}<br>"
+        tooltip += f"<b>Close :</b> ${c:.2f}<br>"
+        if m20 is not None:
+            tooltip += f"<b>MA20 :</b> ${m20:.2f}<br>"
+        if m50 is not None:
+            tooltip += f"<b>MA50 :</b> ${m50:.2f}"
+
+        hover_text.append(tooltip)
+
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=close_s,
+        mode='markers',
+        marker=dict(opacity=0, size=12),
+        text=hover_text,
+        name='',
+        showlegend=False,
+        hovertemplate='%{text}<extra></extra>'
+    ), row=1, col=1)
+
+    # ── Moving Averages ────────────────────────────────────────────────────
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
         line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>MA 20 :</b> $%{y:.2f}<extra></extra>'
+        hovertemplate='<b>MA 20</b><br>%{x|%b %d, %Y}<br>$%{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
         line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>MA 50 :</b> $%{y:.2f}<extra></extra>'
+        hovertemplate='<b>MA 50</b><br>%{x|%b %d, %Y}<br>$%{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     # ── Forecast ───────────────────────────────────────────────────────────
@@ -880,9 +883,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan',
-        # ── KEY CHANGE: 'closest' prevents duplicate date headers ──────────
-        hovermode='closest',
+        height=560, dragmode='pan', hovermode='x unified',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
