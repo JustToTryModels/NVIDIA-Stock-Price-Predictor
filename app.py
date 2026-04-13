@@ -8,15 +8,13 @@
         m20 = ma20.iloc[i]
         m50 = ma50.iloc[i]
 
-        is_bullish = c >= o
-        triangle = "▲" if is_bullish else "▼"
-        triangle_color = "#4ade80" if (is_bullish and IS_DARK) else ("#16a34a" if is_bullish else ("#f87171" if IS_DARK else "#dc2626"))
+        is_green = c >= o
+        triangle = '▲' if is_green else '▼'
+        tri_color = '#4ade80' if (is_green and IS_DARK) else ('#16a34a' if is_green else ('#f87171' if IS_DARK else '#dc2626'))
 
         txt = (
-            f"<b style='display:block; text-align:center;'>"
-            f"<span style='color:{triangle_color};'>{triangle}</span>"
-            f"&nbsp;{date_str}&nbsp;"
-            f"<span style='color:{triangle_color};'>{triangle}</span>"
+            f"<b style='display:block;text-align:center;'>"
+            f"<span style='color:{tri_color};'>{triangle}</span> {date_str} <span style='color:{tri_color};'>{triangle}</span>"
             f"</b>"
             f"<br>Open  : ${o:.2f}"
             f"<br>High  : ${h:.2f}"
