@@ -82,7 +82,7 @@ def apply_theme_css(theme):
 
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #ffffff 0%, #f2f9ea 100%);
-        border-right: 1px solid rgba(118, 185, 0, 0.35);
+        border-right: 1px solid rgba(118,185,0,0.35);
     }
 
     [data-testid="stSidebar"] .stMarkdown h1,
@@ -665,11 +665,17 @@ def get_plotly_layout():
 # ==============================
 @st.cache_resource
 def load_nvidia_model():
+    # A local path to the model file is used here.
+    # When deploying, ensure this file is included in your repository.
+    # Example: 'LSTM_Model/your_model_file.keras'
     model_file = 'LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras'
     try:
         model = load_model(model_file)
         return model
     except Exception as e:
+        # If the app is run where the model file isn't available, it will return None.
+        # This is handled gracefully in the UI.
+        st.error(f"Error loading model: {e}")
         return None
 
 
@@ -680,8 +686,12 @@ def load_nvidia_model():
 def get_stock_data(ticker='NVDA'):
     try:
         data = yf.download(ticker, period='max', auto_adjust=True)
+        if data.empty:
+            st.error(f"No data found for ticker {ticker}. It might be delisted or an invalid ticker.")
+            return None
         return data
     except Exception as e:
+        st.error(f"Failed to download stock data: {e}")
         return None
 
 
@@ -691,14 +701,15 @@ def get_live_quote(ticker='NVDA'):
         t = yf.Ticker(ticker)
         info = t.fast_info
         hist = t.history(period='2d')
-        if len(hist) >= 2:
+        if not hist.empty and len(hist) >= 2:
             prev_close = float(hist['Close'].iloc[-2])
             curr_price = float(hist['Close'].iloc[-1])
-        else:
+        else: # Fallback for new listings or data issues
             curr_price = float(info.last_price)
             prev_close = float(info.previous_close) if hasattr(info, 'previous_close') else curr_price
+
         change = curr_price - prev_close
-        change_pct = (change / prev_close) * 100
+        change_pct = (change / prev_close) * 100 if prev_close != 0 else 0
         return {
             'price': curr_price,
             'prev_close': prev_close,
@@ -770,11 +781,13 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
+    # FIX 1: Removed hovertemplate from Candlestick, set name to ' ' to remove from unified hover.
+    # The default OHLC info will show correctly in unified mode.
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
         low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name=' ', # MODIFICATION: Changed name to a space to remove it from the unified tooltip.
+        name=' ',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5
@@ -784,14 +797,18 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
+    # FIX 1 (continued): Added custom hovertemplate to MA traces.
+    # This will appear in the unified tooltip only when a value exists for that date.
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90
+        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
+        hovertemplate='MA 20: %{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90
+        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
+        hovertemplate='MA 50: %{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -814,6 +831,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
+            hovertemplate='Forecast: %{y:.2f}<extra></extra>'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
@@ -822,7 +840,8 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False
+        opacity=0.60, showlegend=False,
+        hovertemplate='Volume: %{y:,.0f}<extra></extra>'
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -870,13 +889,13 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         line=dict(color='rgba(0,0,0,0)'),
         showlegend=False, hoverinfo='skip'
     ))
+    # FIX 2: Removed redundant date from hovertemplate.
     fig.add_trace(go.Scatter(
         x=dates_full, y=prices_full, name='Forecast',
         line=dict(color='#76b900', width=2.5),
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        # MODIFICATION: Removed date from hovertemplate as it's provided by the unified hover mode header.
         hovertemplate='Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
@@ -914,11 +933,11 @@ def build_returns_chart(stock_data, days=252):
     colors = [up_color if r >= 0 else dn_color for r in returns]
 
     fig = go.Figure()
+    # FIX 3: Removed redundant date from hovertemplate.
     fig.add_trace(go.Bar(
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        # MODIFICATION: Removed date from hovertemplate.
         hovertemplate='Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
@@ -953,12 +972,12 @@ def build_volume_profile(stock_data, days=90):
         title_color = '#1a2e05'
 
     fig = go.Figure()
+    # FIX 3: Removed redundant date from hovertemplate.
     fig.add_trace(go.Scatter(
         x=df.index, y=volume,
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        # MODIFICATION: Removed date from hovertemplate.
         hovertemplate='Vol: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
@@ -1185,6 +1204,7 @@ if run_prediction:
         <div class='warning-box'>
             <b>⚠️ Model Not Available</b><br>
             The LSTM model file could not be loaded. Please verify the model path and file integrity.
+            On Streamlit Cloud, ensure the model file is included in your repository and the path is correct.
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -1194,7 +1214,7 @@ if run_prediction:
             if stock_data is None or stock_data.empty:
                 st.markdown("""
                 <div class='warning-box'>
-                    ❌ Failed to fetch stock data. Please check your internet connection.
+                    ❌ Failed to fetch stock data. Please check your internet connection or the ticker symbol.
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -1244,7 +1264,7 @@ if st.session_state.prediction_results is not None:
     last_actual_price = float(stock_data_display['Close'].iloc[-1])
     final_pred_price  = float(pred_flat[-1])
     pred_change       = final_pred_price - last_actual_price
-    pred_change_pct   = (pred_change / last_actual_price) * 100
+    pred_change_pct   = (pred_change / last_actual_price) * 100 if last_actual_price != 0 else 0
 
     summary_ts_color = '#64748b' if IS_DARK else '#6b8f3a'
     st.markdown(f"""
@@ -1316,7 +1336,7 @@ if st.session_state.prediction_results is not None:
             'Date':           [d.strftime('%A, %b %d %Y') for d in prediction_dates],
             'Predicted Price':[f"${p:.2f}" for p in pred_flat],
             'Change vs Close':[f"{p - last_actual_price:+.2f}" for p in pred_flat],
-            'Change %':       [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" for p in pred_flat],
+            'Change %':       [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" if last_actual_price != 0 else "N/A" for p in pred_flat],
             'Signal':         ['🟢 BUY' if p >= last_actual_price else '🔴 SELL' for p in pred_flat]
         })
 
