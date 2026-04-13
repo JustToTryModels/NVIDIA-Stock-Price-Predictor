@@ -770,54 +770,31 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # Custom hover template for candlestick
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
         low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name='',
+        name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertext=[f'<b>{date.strftime("%b %d, %Y")}</b>' for date in df.index],
-        hoverinfo='text',
-        customdata=np.column_stack((
-            df['Open'].squeeze(),
-            df['High'].squeeze(),
-            df['Low'].squeeze(),
-            df['Close'].squeeze()
-        )),
-        hoverlabel=dict(namelength=0)
+        hovertemplate='<center><b>%{x|%b %d, %Y}</b></center><br>Open: %{open:.2f}<br>High: %{high:.2f}<br>Low: %{low:.2f}<br>Close: %{close:.2f}<br><extra></extra>'
     ), row=1, col=1)
-
-    # Update candlestick hover template
-    fig.data[0].hovertemplate = (
-        '<b>%{hovertext}</b><br>' +
-        '🕯️ Open: $%{customdata[0]:.2f}<br>' +
-        '🕯️ High: $%{customdata[1]:.2f}<br>' +
-        '🕯️ Low: $%{customdata[2]:.2f}<br>' +
-        '🕯️ Close: $%{customdata[3]:.2f}<br>' +
-        '<extra></extra>'
-    )
 
     close_series = df['Close'].squeeze()
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
-    # Add MA20 with conditional hover
-    ma20_valid = ma20.dropna()
     fig.add_trace(go.Scatter(
-        x=ma20_valid.index, y=ma20_valid, name='MA 20',
+        x=df.index, y=ma20, name='MA 20',
         line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>📊 MA20: $%{y:.2f}<extra></extra>'
+        hovertemplate='MA20: %{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
-    # Add MA50 with conditional hover
-    ma50_valid = ma50.dropna()
     fig.add_trace(go.Scatter(
-        x=ma50_valid.index, y=ma50_valid, name='MA 50',
+        x=df.index, y=ma50, name='MA 50',
         line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>📊 MA50: $%{y:.2f}<extra></extra>'
+        hovertemplate='MA50: %{y:.2f}<extra></extra>'
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -840,7 +817,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='<b>%{x|%b %d, %Y}</b><br>🔮 Forecast: $%{y:.2f}<extra></extra>'
         ), row=1, col=1)
 
     colors_vol = [vol_up if c >= o else vol_dn
@@ -849,8 +825,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False,
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>📊 Volume: %{y:,.0f}<extra></extra>'
+        opacity=0.60, showlegend=False
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -865,7 +840,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
-    
     return fig
 
 
@@ -905,7 +879,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>💵 Price: <b>$%{y:.2f}</b><extra></extra>'
+        hovertemplate='Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
         y=last_actual_price,
@@ -946,7 +920,7 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>📈 Return: <b>%{y:.2f}%</b><extra></extra>'
+        hovertemplate='Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -985,7 +959,7 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>📊 Volume: <b>%{y:,.0f}</b><extra></extra>'
+        hovertemplate='Vol: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
