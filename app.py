@@ -805,7 +805,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             f"<b style='display:block; text-align:center;'>"
             f"<span style='color:{tri_color};'>{triangle}</span>"
             f"&nbsp;{date_str}&nbsp;"
-            f"<span style='color:{tri_color};'>{triangle}</span>"
             f"</b>"
             f"<br>Open  : ${o:.2f}"
             f"<br>High  : ${h:.2f}"
