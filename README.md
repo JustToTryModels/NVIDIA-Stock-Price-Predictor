@@ -113,7 +113,7 @@ Predict NVIDIA's future closing stock prices by analyzing 25+ years of historica
 
 Try the live stock price prediction model here:
 
-[![Open Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://nvidia-stock-price-predictor.streamlit.app/)
+[![Open Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://nvidia-stock-price-prediction-app.streamlit.app/)
 
 <br>
 
