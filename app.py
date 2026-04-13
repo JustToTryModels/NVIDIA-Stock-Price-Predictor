@@ -26,67 +26,35 @@ if 'theme' not in st.session_state:
     st.session_state.theme = 'System 🖳'
 
 # ==============================
-# 🔹 FIXED: Real-Time System Theme Detection
+# 🔹 Detect System Theme & Resolve Effective Theme
 # ==============================
 def get_effective_theme(theme_choice):
     if theme_choice == 'System 🖳':
-        # ── Step 1: Inject JS that detects system theme AND listens for live changes ──
-        st.markdown("""
+        system_theme_js = """
         <script>
         (function() {
-            function applyTheme(isDark) {
-                const theme = isDark ? 'dark' : 'light';
-                const url = new URL(window.location.href);
-                const current = url.searchParams.get('sys_theme');
-                if (current !== theme) {
-                    url.searchParams.set('sys_theme', theme);
-                    window.location.replace(url.toString());
-                }
+            const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = isDark ? 'dark' : 'light';
+            if (!sessionStorage.getItem('systemThemeSet')) {
+                sessionStorage.setItem('systemTheme', theme);
+                sessionStorage.setItem('systemThemeSet', 'true');
             }
-
-            const mq = window.matchMedia('(prefers-color-scheme: dark)');
-
-            // Detect on initial load
-            applyTheme(mq.matches);
-
-            // Listen for live OS theme changes (e.g. user switches dark/light mid-session)
-            mq.addEventListener('change', function(e) {
-                applyTheme(e.matches);
-            });
+            const url = new URL(window.location);
+            const current = url.searchParams.get('sys_theme');
+            if (current !== theme) {
+                url.searchParams.set('sys_theme', theme);
+                window.history.replaceState({}, '', url);
+            }
         })();
         </script>
-        """, unsafe_allow_html=True)
-
-        # ── Step 2: Python reads the query param set by JS ──
-        sys_theme = st.query_params.get('sys_theme', None)
-
-        if sys_theme is None:
-            # Very first render before JS has fired — halt and wait for redirect
-            st.markdown("""
-            <style>
-                .stApp { opacity: 0 !important; }
-            </style>
-            """, unsafe_allow_html=True)
-            st.stop()
-
+        """
+        st.markdown(system_theme_js, unsafe_allow_html=True)
+        query_params = st.query_params
+        sys_theme = query_params.get('sys_theme', 'dark')
         return 'Dark' if sys_theme == 'dark' else 'Light'
-
     elif theme_choice == 'Light ☼':
-        # Clear sys_theme param if user manually picks Light
-        try:
-            if 'sys_theme' in st.query_params:
-                del st.query_params['sys_theme']
-        except Exception:
-            pass
         return 'Light'
-
     else:
-        # Clear sys_theme param if user manually picks Dark
-        try:
-            if 'sys_theme' in st.query_params:
-                del st.query_params['sys_theme']
-        except Exception:
-            pass
         return 'Dark'
 
 effective_theme = get_effective_theme(st.session_state.theme)
@@ -800,6 +768,9 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
+    # ── Candlestick: showlegend keeps "OHLC" label in legend (good),
+    #    but we disable its built-in hover completely so our ghost
+    #    scatter owns the tooltip exclusively. ──
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=open_series,
@@ -810,9 +781,11 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
+        # Disable the native candlestick tooltip entirely
         hoverinfo='none',
     ), row=1, col=1)
 
+    # ── Build per-point hovertext strings with conditional MA lines ──
     hover_texts = []
     for i in range(len(df)):
         date_str = df.index[i].strftime('%b %d, %Y')
@@ -830,24 +803,30 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             f"<br>Low   : ${l:.2f}"
             f"<br>Close : ${c:.2f}"
         )
+        # Only append MA20 row when the value is not NaN
         if not np.isnan(m20):
             txt += f"<br>MA 20 : ${m20:.2f}"
+        # Only append MA50 row when the value is not NaN
         if not np.isnan(m50):
             txt += f"<br>MA 50 : ${m50:.2f}"
 
         hover_texts.append(txt)
 
+    # ── Invisible ghost scatter that carries the full custom tooltip ──
+    # Positioned at the Close price so it sits on each candle body.
     fig.add_trace(go.Scatter(
         x=df.index,
         y=close_series,
         mode='markers',
-        marker=dict(opacity=0, size=12),
+        marker=dict(opacity=0, size=12),   # fully invisible markers
         showlegend=False,
         hovertemplate='%{hovertext}<extra></extra>',
         hovertext=hover_texts,
         name='',
     ), row=1, col=1)
 
+    # ── MA20 trace (visible line, its own hover suppressed —
+    #    the ghost scatter already shows MA values) ──
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
         line=dict(color=ma20_color, width=1.5, dash='dot'),
@@ -855,6 +834,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         hoverinfo='none',
     ), row=1, col=1)
 
+    # ── MA50 trace ──
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
         line=dict(color=ma50_color, width=1.5, dash='dot'),
@@ -862,6 +842,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         hoverinfo='none',
     ), row=1, col=1)
 
+    # ── Forecast band & line ──
     if predictions is not None and prediction_dates is not None:
         pred_flat = predictions.flatten()
         last_actual_price = float(df['Close'].iloc[-1])
@@ -885,6 +866,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast : $%{y:.2f}<extra></extra>',
         ), row=1, col=1)
 
+    # ── Volume bars ──
     colors_vol = [vol_up if c >= o else vol_dn
                   for c, o in zip(close_series, open_series)]
 
@@ -903,6 +885,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         height=560, dragmode='pan',
+        # 'closest' avoids the x-unified header that would duplicate the date
         hovermode='closest',
     ))
     fig.update_layout(**layout)
@@ -947,6 +930,8 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
+        # ── Change 2 fix: 'closest' mode + full date format in template
+        #    eliminates the duplicate "Apr 15" header from x unified ──
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price : <b>$%{y:.2f}</b><extra></extra>',
     ))
     fig.add_hline(
@@ -963,7 +948,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
         height=380,
-        hovermode='closest',
+        hovermode='closest',   # removes duplicate date from x unified header
         showlegend=False
     ))
     fig.update_layout(**layout)
@@ -990,6 +975,7 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
+        # ── Change 3 fix: single date in template, 'closest' hovermode ──
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return : <b>%{y:.2f}%</b><extra></extra>',
     ))
 
@@ -1000,7 +986,7 @@ def build_returns_chart(stock_data, days=252):
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
         height=320,
-        hovermode='closest',
+        hovermode='closest',   # removes duplicate date from x unified header
     ))
     fig.update_layout(**layout)
     return fig
@@ -1030,6 +1016,7 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
+        # ── Change 3 fix: single date in template, 'closest' hovermode ──
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume : <b>%{y:,.0f}</b><extra></extra>',
     ))
 
@@ -1040,7 +1027,7 @@ def build_volume_profile(stock_data, days=90):
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
         height=280,
-        hovermode='closest',
+        hovermode='closest',   # removes duplicate date from x unified header
         showlegend=False
     ))
     fig.update_layout(**layout)
