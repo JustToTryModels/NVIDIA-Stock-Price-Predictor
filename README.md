@@ -435,7 +435,7 @@ jupyter notebook Notebook/NVIDIA_Stock_Price_Analysis.ipynb
 ## 🙏 Thank You
 
 <div align="center">
-  <img src="https://github.com/MarpakaPradeepSai/Employee-Churn-Prediction/blob/main/Data/Images%20&%20GIFs/thank-you-33.gif?raw=true" alt="Thank You" width="250">
+  <img src="https://github.com/MarpakaPradeepSai/Employee-Churn-Prediction/blob/main/Data/Images%20&%20GIFs/thank-you-33.gif?raw=true" alt="Thank You" width="300">
 
   If this project was helpful, please consider giving it a ⭐
 </div>
