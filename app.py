@@ -366,7 +366,7 @@ def apply_theme_css(theme):
     }
     [data-testid="stMetricDelta"] { font-size: 0.85rem!important; font-weight: 500!important; }
 
-    [data-testid="stSlider"] > div > div > div > div { background: #76b900!important; }
+    [data-testid="stSlider"] > div > div { background: #76b900!important; }
    .stSlider [data-baseweb="slider"] { padding-top: 10px; }
 
     [data-testid="stDataFrame"] {
@@ -764,15 +764,26 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
+    opens = df['Open'].squeeze()
+    highs = df['High'].squeeze()
+    lows = df['Low'].squeeze()
+    closes = df['Close'].squeeze()
+
+    hovertext_candle = [
+        f"Open: ${o:.2f}<br>High: ${h:.2f}<br>Low: ${l:.2f}<br>Close: ${c:.2f}"
+        for o, h, l, c in zip(opens, highs, lows, closes)
+    ]
+
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
+        open=opens, high=highs,
+        low=lows, close=closes,
         name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertemplate='Open: $%{open:.2f}<br>High: $%{high:.2f}<br>Low: $%{low:.2f}<br>Close: $%{close:.2f}<extra></extra>'
+        hoverinfo='text',
+        hovertext=hovertext_candle
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
@@ -782,13 +793,15 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
         line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA20: $%{y:.2f}<extra></extra>'
+        hovertemplate='MA20: $%{y:.2f}<extra></extra>',
+        connectgaps=False
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
         line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA50: $%{y:.2f}<extra></extra>'
+        hovertemplate='MA50: $%{y:.2f}<extra></extra>',
+        connectgaps=False
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -1334,92 +1347,4 @@ if st.session_state.prediction_results is not None:
         """, unsafe_allow_html=True)
 
     with tab3:
-        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-        fig_ret = build_returns_chart(stock_data, days=252)
-        st.plotly_chart(fig_ret, use_container_width=True, config={
-            'displayModeBar': False, 'displaylogo': False
-        })
-
-        fig_vol = build_volume_profile(stock_data, days=lookback_chart)
-        st.plotly_chart(fig_vol, use_container_width=True, config={
-            'displayModeBar': False, 'displaylogo': False
-        })
-
-        close_s = stock_data_display['Close'].squeeze()
-        ret_1y = close_s.tail(252).pct_change().dropna() * 100
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div class='section-header'>
-            <h3>Return Statistics (1Y)</h3>
-            <span class='section-badge'>Annualized</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        rs1, rs2, rs3, rs4 = st.columns(4)
-        with rs1:
-            st.metric("Mean Daily Return", f"{ret_1y.mean():.3f}%")
-        with rs2:
-            st.metric("Std Deviation", f"{ret_1y.std():.3f}%")
-        with rs3:
-            st.metric("Best Day", f"+{ret_1y.max():.2f}%")
-        with rs4:
-            st.metric("Worst Day", f"{ret_1y.min():.2f}%")
-
-    with tab4:
-        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class='section-header'>
-            <h3>Full Historical Dataset</h3>
-            <span class='section-badge'>Max History</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-        disp = stock_data_display.sort_index(ascending=False).copy()
-        for col in disp.select_dtypes(include=np.number).columns:
-            disp[col] = disp[col].round(4)
-
-        st.dataframe(disp, height=480, use_container_width=True)
-
-        csv = disp.to_csv().encode('utf-8')
-        col_dl1, col_dl2, col_dl3 = st.columns([1, 1, 1])
-        with col_dl2:
-            st.download_button(
-                label="⬇️ Download CSV",
-                data=csv,
-                file_name=f"NVDA_historical_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime='text/csv',
-                use_container_width=True
-            )
-
-else:
-    placeholder_h2 = '#f1f5f9' if IS_DARK else '#1a2e05'
-    placeholder_p = '#64748b' if IS_DARK else '#5a7a3a'
-    placeholder_b = '#76b900' if IS_DARK else '#4a7c00'
-
-    st.markdown(f"""
-    <div class='glass-card' style='text-align:center; padding: 60px 40px;'>
-        <div style='font-size:4rem; margin-bottom:16px;'>📡</div>
-        <h2 style='color:{placeholder_h2}; font-size:1.6rem; margin-bottom:12px;'>Ready to Forecast</h2>
-        <p style='color:{placeholder_p}; max-width:420px; margin:0 auto; line-height:1.7; font-size:0.95rem;'>
-            Configure your forecast horizon in the sidebar, then click
-            <b style='color:{placeholder_b};'>Generate Forecast</b> to run the LSTM model
-            and visualize predicted NVDA price movements.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    with st.spinner("Loading market data..."):
-        stock_data_preview = get_stock_data(STOCK)
-        if stock_data_preview is not None and not stock_data_preview.empty:
-            fig_prev = build_candlestick_chart(
-                stock_data_preview, None, None, lookback_days=90
-            )
-            st.plotly_chart(fig_prev, use_container_width=True, config={
-                'displayModeBar': True,
-                'modeBarButtonsToRemove': ['select2d', 'lasso2d'],
-                'displaylogo': False,
-                'scrollZoom': True
-            })
+        st.markdown("<div style='height:12px'></
