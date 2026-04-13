@@ -774,11 +774,10 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         x=df.index,
         open=df['Open'].squeeze(), high=df['High'].squeeze(),
         low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name='OHLC',
+        name=' ', # MODIFICATION: Changed name to a space to remove it from the unified tooltip.
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5,
-        hovertemplate='<center><b>%{x|%b %d, %Y}</b></center><br>Open: %{open:.2f}<br>High: %{high:.2f}<br>Low: %{low:.2f}<br>Close: %{close:.2f}<br><extra></extra>'
+        whiskerwidth=0.5
     ), row=1, col=1)
 
     close_series = df['Close'].squeeze()
@@ -787,14 +786,12 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA20: %{y:.2f}<extra></extra>'
+        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA50: %{y:.2f}<extra></extra>'
+        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90
     ), row=1, col=1)
 
     if predictions is not None and prediction_dates is not None:
@@ -879,6 +876,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
+        # MODIFICATION: Removed date from hovertemplate as it's provided by the unified hover mode header.
         hovertemplate='Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
@@ -920,6 +918,7 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
+        # MODIFICATION: Removed date from hovertemplate.
         hovertemplate='Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
@@ -959,6 +958,7 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
+        # MODIFICATION: Removed date from hovertemplate.
         hovertemplate='Vol: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
