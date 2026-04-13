@@ -774,11 +774,22 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
-    # --- Tooltip customization (Date centered/bold; MA20/MA50 only if available) ---
-    date_str = np.array([f"{d.strftime('%b')} {d.day}, {d.year}" for d in df.index], dtype=object)
-    ma20_line = np.array([f"<br>MA20: {v:.2f}" if pd.notna(v) else "" for v in ma20.values], dtype=object)
-    ma50_line = np.array([f"<br>MA50: {v:.2f}" if pd.notna(v) else "" for v in ma50.values], dtype=object)
-    candle_customdata = np.column_stack([date_str, ma20_line, ma50_line]).astype(object)
+    # --- Custom hovertext for candlesticks (no hovertemplate for Candlestick; fixes the error) ---
+    hover_text = []
+    for i, ts in enumerate(df.index):
+        date_str = f"{ts.strftime('%b')} {ts.day}, {ts.year}"
+        s = (
+            f"<span style='display:block;text-align:center;'><b>{date_str}</b></span>"
+            f"<br>Open: {float(df['Open'].iloc[i]):.2f}"
+            f"<br>High: {float(df['High'].iloc[i]):.2f}"
+            f"<br>Low: {float(df['Low'].iloc[i]):.2f}"
+            f"<br>Close: {float(df['Close'].iloc[i]):.2f}"
+        )
+        if pd.notna(ma20.iloc[i]):
+            s += f"<br>MA20: {float(ma20.iloc[i]):.2f}"
+        if pd.notna(ma50.iloc[i]):
+            s += f"<br>MA50: {float(ma50.iloc[i]):.2f}"
+        hover_text.append(s)
 
     fig.add_trace(go.Candlestick(
         x=df.index,
@@ -788,17 +799,10 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        customdata=candle_customdata,
-        hovertemplate=(
-            "<span style='display:block;text-align:center;'><b>%{customdata[0]}</b></span>"
-            "<br>Open: %{open:.2f}"
-            "<br>High: %{high:.2f}"
-            "<br>Low: %{low:.2f}"
-            "<br>Close: %{close:.2f}"
-            "%{customdata[1]}"
-            "%{customdata[2]}"
-            "<extra> </extra>"  # keep the OHLC symbol, remove the "OHLC" word
-        )
+        hovertext=hover_text,
+        hoverinfo='text',
+        # Remove "OHLC" word from tooltip while preserving the symbol
+        hoverlabel=dict(namelength=0)
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
@@ -851,7 +855,9 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan', hovermode='closest',
+        height=560, dragmode='pan',
+        # Prevent the duplicated date line from unified hover
+        hovermode='closest',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
@@ -910,7 +916,10 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
                    font=dict(size=16, color=title_color), x=0.02),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='closest', showlegend=False
+        height=380,
+        # Prevent duplicated date in tooltip (no unified hover header)
+        hovermode='closest',
+        showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -945,7 +954,9 @@ def build_returns_chart(stock_data, days=252):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='closest',
+        height=320,
+        # Prevent duplicated date header from unified hover
+        hovermode='closest',
     ))
     fig.update_layout(**layout)
     return fig
@@ -984,7 +995,10 @@ def build_volume_profile(stock_data, days=90):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='closest', showlegend=False
+        height=280,
+        # Prevent duplicated date header from unified hover
+        hovermode='closest',
+        showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
