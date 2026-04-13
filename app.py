@@ -82,7 +82,7 @@ def apply_theme_css(theme):
 
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #ffffff 0%, #f2f9ea 100%);
-        border-right: 1px solid rgba(118,185,0,0.35);
+        border-right: 1px solid rgba(118, 185, 0, 0.35);
     }
 
     [data-testid="stSidebar"] .stMarkdown h1,
@@ -184,7 +184,6 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
-    /* Light mode selectbox */
     [data-testid="stSelectbox"] > div > div {
         background: rgba(255,255,255,0.95) !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -194,7 +193,6 @@ def apply_theme_css(theme):
     [data-testid="stSelectbox"] > div > div > div {
         color: #1a2e05 !important;
     }
-    /* Light dropdown popover */
     [data-baseweb="popover"] [data-baseweb="menu"] {
         background: #ffffff !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -420,7 +418,6 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
-    /* ── Dark mode selectbox: closed state ── */
     [data-testid="stSelectbox"] > div > div {
         background: rgba(22,27,39,0.95) !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -433,7 +430,6 @@ def apply_theme_css(theme):
         fill: #e2e8f0 !important;
     }
 
-    /* ── Dark mode dropdown popover/listbox ── */
     [data-baseweb="popover"],
     [data-baseweb="popover"] > div,
     [data-baseweb="popover"] [data-baseweb="menu"] {
@@ -443,7 +439,6 @@ def apply_theme_css(theme):
         box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
     }
 
-    /* Every list item — base state */
     [data-baseweb="popover"] li,
     [data-baseweb="popover"] [role="option"] {
         background: #161b27 !important;
@@ -451,14 +446,12 @@ def apply_theme_css(theme):
         font-family: 'Inter', sans-serif !important;
     }
 
-    /* Non-selected item hover */
     [data-baseweb="popover"] li:hover,
     [data-baseweb="popover"] [role="option"]:hover {
         background: rgba(118,185,0,0.15) !important;
         color: #e2e8f0 !important;
     }
 
-    /* Selected item — always green, never white */
     [data-baseweb="popover"] [aria-selected="true"],
     [data-baseweb="popover"] li[aria-selected="true"] {
         background: rgba(118,185,0,0.22) !important;
@@ -466,7 +459,6 @@ def apply_theme_css(theme):
         font-weight: 600 !important;
     }
 
-    /* Selected item on hover — keep green, do NOT turn white */
     [data-baseweb="popover"] [aria-selected="true"]:hover,
     [data-baseweb="popover"] li[aria-selected="true"]:hover {
         background: rgba(118,185,0,0.30) !important;
@@ -474,7 +466,6 @@ def apply_theme_css(theme):
         font-weight: 600 !important;
     }
 
-    /* Scrollbar inside dropdown */
     [data-baseweb="popover"] ::-webkit-scrollbar { width: 4px; }
     [data-baseweb="popover"] ::-webkit-scrollbar-track { background: #0d1117; }
     [data-baseweb="popover"] ::-webkit-scrollbar-thumb { background: rgba(118,185,0,0.4); border-radius: 2px; }
@@ -665,17 +656,11 @@ def get_plotly_layout():
 # ==============================
 @st.cache_resource
 def load_nvidia_model():
-    # A local path to the model file is used here.
-    # When deploying, ensure this file is included in your repository.
-    # Example: 'LSTM_Model/your_model_file.keras'
     model_file = 'LSTM_Model/NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras'
     try:
         model = load_model(model_file)
         return model
     except Exception as e:
-        # If the app is run where the model file isn't available, it will return None.
-        # This is handled gracefully in the UI.
-        st.error(f"Error loading model: {e}")
         return None
 
 
@@ -686,12 +671,8 @@ def load_nvidia_model():
 def get_stock_data(ticker='NVDA'):
     try:
         data = yf.download(ticker, period='max', auto_adjust=True)
-        if data.empty:
-            st.error(f"No data found for ticker {ticker}. It might be delisted or an invalid ticker.")
-            return None
         return data
     except Exception as e:
-        st.error(f"Failed to download stock data: {e}")
         return None
 
 
@@ -701,15 +682,14 @@ def get_live_quote(ticker='NVDA'):
         t = yf.Ticker(ticker)
         info = t.fast_info
         hist = t.history(period='2d')
-        if not hist.empty and len(hist) >= 2:
+        if len(hist) >= 2:
             prev_close = float(hist['Close'].iloc[-2])
             curr_price = float(hist['Close'].iloc[-1])
-        else: # Fallback for new listings or data issues
+        else:
             curr_price = float(info.last_price)
             prev_close = float(info.previous_close) if hasattr(info, 'previous_close') else curr_price
-
         change = curr_price - prev_close
-        change_pct = (change / prev_close) * 100 if prev_close != 0 else 0
+        change_pct = (change / prev_close) * 100
         return {
             'price': curr_price,
             'prev_close': prev_close,
@@ -781,36 +761,88 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
-    # FIX 1: Removed hovertemplate from Candlestick, set name to ' ' to remove from unified hover.
-    # The default OHLC info will show correctly in unified mode.
-    fig.add_trace(go.Candlestick(
-        x=df.index,
-        open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
-        name=' ',
-        increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
-        decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
-        whiskerwidth=0.5
-    ), row=1, col=1)
-
     close_series = df['Close'].squeeze()
+    open_series  = df['Open'].squeeze()
+    high_series  = df['High'].squeeze()
+    low_series   = df['Low'].squeeze()
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
-    # FIX 1 (continued): Added custom hovertemplate to MA traces.
-    # This will appear in the unified tooltip only when a value exists for that date.
+    # ── Candlestick: showlegend keeps "OHLC" label in legend (good),
+    #    but we disable its built-in hover completely so our ghost
+    #    scatter owns the tooltip exclusively. ──
+    fig.add_trace(go.Candlestick(
+        x=df.index,
+        open=open_series,
+        high=high_series,
+        low=low_series,
+        close=close_series,
+        name='OHLC',
+        increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
+        decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
+        whiskerwidth=0.5,
+        # Disable the native candlestick tooltip entirely
+        hoverinfo='none',
+    ), row=1, col=1)
+
+    # ── Build per-point hovertext strings with conditional MA lines ──
+    hover_texts = []
+    for i in range(len(df)):
+        date_str = df.index[i].strftime('%b %d, %Y')
+        o = open_series.iloc[i]
+        h = high_series.iloc[i]
+        l = low_series.iloc[i]
+        c = close_series.iloc[i]
+        m20 = ma20.iloc[i]
+        m50 = ma50.iloc[i]
+
+        txt = (
+            f"<b style='display:block;text-align:center;'>{date_str}</b>"
+            f"<br>Open  : ${o:.2f}"
+            f"<br>High  : ${h:.2f}"
+            f"<br>Low   : ${l:.2f}"
+            f"<br>Close : ${c:.2f}"
+        )
+        # Only append MA20 row when the value is not NaN
+        if not np.isnan(m20):
+            txt += f"<br>MA 20 : ${m20:.2f}"
+        # Only append MA50 row when the value is not NaN
+        if not np.isnan(m50):
+            txt += f"<br>MA 50 : ${m50:.2f}"
+
+        hover_texts.append(txt)
+
+    # ── Invisible ghost scatter that carries the full custom tooltip ──
+    # Positioned at the Close price so it sits on each candle body.
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=close_series,
+        mode='markers',
+        marker=dict(opacity=0, size=12),   # fully invisible markers
+        showlegend=False,
+        hovertemplate='%{hovertext}<extra></extra>',
+        hovertext=hover_texts,
+        name='',
+    ), row=1, col=1)
+
+    # ── MA20 trace (visible line, its own hover suppressed —
+    #    the ghost scatter already shows MA values) ──
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA 20: %{y:.2f}<extra></extra>'
+        line=dict(color=ma20_color, width=1.5, dash='dot'),
+        opacity=0.90,
+        hoverinfo='none',
     ), row=1, col=1)
 
+    # ── MA50 trace ──
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA 50: %{y:.2f}<extra></extra>'
+        line=dict(color=ma50_color, width=1.5, dash='dot'),
+        opacity=0.90,
+        hoverinfo='none',
     ), row=1, col=1)
 
+    # ── Forecast band & line ──
     if predictions is not None and prediction_dates is not None:
         pred_flat = predictions.flatten()
         last_actual_price = float(df['Close'].iloc[-1])
@@ -831,17 +863,18 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='Forecast: %{y:.2f}<extra></extra>'
+            hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast : $%{y:.2f}<extra></extra>',
         ), row=1, col=1)
 
+    # ── Volume bars ──
     colors_vol = [vol_up if c >= o else vol_dn
-                  for c, o in zip(close_series, df['Open'].squeeze())]
+                  for c, o in zip(close_series, open_series)]
 
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
         opacity=0.60, showlegend=False,
-        hovertemplate='Volume: %{y:,.0f}<extra></extra>'
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume : %{y:,.0f}<extra></extra>',
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -851,7 +884,9 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan', hovermode='x unified',
+        height=560, dragmode='pan',
+        # 'closest' avoids the x-unified header that would duplicate the date
+        hovermode='closest',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
@@ -889,14 +924,15 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         line=dict(color='rgba(0,0,0,0)'),
         showlegend=False, hoverinfo='skip'
     ))
-    # FIX 2: Removed redundant date from hovertemplate.
     fig.add_trace(go.Scatter(
         x=dates_full, y=prices_full, name='Forecast',
         line=dict(color='#76b900', width=2.5),
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        hovertemplate='Price: <b>$%{y:.2f}</b><extra></extra>'
+        # ── Change 2 fix: 'closest' mode + full date format in template
+        #    eliminates the duplicate "Apr 15" header from x unified ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price : <b>$%{y:.2f}</b><extra></extra>',
     ))
     fig.add_hline(
         y=last_actual_price,
@@ -911,7 +947,9 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
                    font=dict(size=16, color=title_color), x=0.02),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='x unified', showlegend=False
+        height=380,
+        hovermode='closest',   # removes duplicate date from x unified header
+        showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -933,12 +971,12 @@ def build_returns_chart(stock_data, days=252):
     colors = [up_color if r >= 0 else dn_color for r in returns]
 
     fig = go.Figure()
-    # FIX 3: Removed redundant date from hovertemplate.
     fig.add_trace(go.Bar(
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        hovertemplate='Return: <b>%{y:.2f}%</b><extra></extra>'
+        # ── Change 3 fix: single date in template, 'closest' hovermode ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return : <b>%{y:.2f}%</b><extra></extra>',
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -947,7 +985,8 @@ def build_returns_chart(stock_data, days=252):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='x unified',
+        height=320,
+        hovermode='closest',   # removes duplicate date from x unified header
     ))
     fig.update_layout(**layout)
     return fig
@@ -972,13 +1011,13 @@ def build_volume_profile(stock_data, days=90):
         title_color = '#1a2e05'
 
     fig = go.Figure()
-    # FIX 3: Removed redundant date from hovertemplate.
     fig.add_trace(go.Scatter(
         x=df.index, y=volume,
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        hovertemplate='Vol: <b>%{y:,.0f}</b><extra></extra>'
+        # ── Change 3 fix: single date in template, 'closest' hovermode ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume : <b>%{y:,.0f}</b><extra></extra>',
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -987,7 +1026,9 @@ def build_volume_profile(stock_data, days=90):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='x unified', showlegend=False
+        height=280,
+        hovermode='closest',   # removes duplicate date from x unified header
+        showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -1204,7 +1245,6 @@ if run_prediction:
         <div class='warning-box'>
             <b>⚠️ Model Not Available</b><br>
             The LSTM model file could not be loaded. Please verify the model path and file integrity.
-            On Streamlit Cloud, ensure the model file is included in your repository and the path is correct.
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -1214,7 +1254,7 @@ if run_prediction:
             if stock_data is None or stock_data.empty:
                 st.markdown("""
                 <div class='warning-box'>
-                    ❌ Failed to fetch stock data. Please check your internet connection or the ticker symbol.
+                    ❌ Failed to fetch stock data. Please check your internet connection.
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -1264,7 +1304,7 @@ if st.session_state.prediction_results is not None:
     last_actual_price = float(stock_data_display['Close'].iloc[-1])
     final_pred_price  = float(pred_flat[-1])
     pred_change       = final_pred_price - last_actual_price
-    pred_change_pct   = (pred_change / last_actual_price) * 100 if last_actual_price != 0 else 0
+    pred_change_pct   = (pred_change / last_actual_price) * 100
 
     summary_ts_color = '#64748b' if IS_DARK else '#6b8f3a'
     st.markdown(f"""
@@ -1336,7 +1376,7 @@ if st.session_state.prediction_results is not None:
             'Date':           [d.strftime('%A, %b %d %Y') for d in prediction_dates],
             'Predicted Price':[f"${p:.2f}" for p in pred_flat],
             'Change vs Close':[f"{p - last_actual_price:+.2f}" for p in pred_flat],
-            'Change %':       [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" if last_actual_price != 0 else "N/A" for p in pred_flat],
+            'Change %':       [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" for p in pred_flat],
             'Signal':         ['🟢 BUY' if p >= last_actual_price else '🔴 SELL' for p in pred_flat]
         })
 
