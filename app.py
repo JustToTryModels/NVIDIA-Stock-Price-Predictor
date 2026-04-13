@@ -770,33 +770,101 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         title_color = '#1a2e05'
         grid_color = 'rgba(118,185,0,0.08)'
 
+    close_series = df['Close'].squeeze()
+    open_series  = df['Open'].squeeze()
+    high_series  = df['High'].squeeze()
+    low_series   = df['Low'].squeeze()
+
+    # ── Compute MAs before adding traces so we can use them in custom hover ──
+    ma20 = close_series.rolling(window=20).mean()
+    ma50 = close_series.rolling(window=50).mean()
+
+    # ── Build per-point customdata: [open, high, low, close, ma20, ma50] ──
+    # ma20/ma50 will be NaN for early points — we handle that in the template
+    customdata = np.column_stack([
+        open_series.values,
+        high_series.values,
+        low_series.values,
+        close_series.values,
+        ma20.values,
+        ma50.values,
+    ])
+
+    # ── Candlestick — hoverinfo='none' so we supply our own via customdata ──
     fig.add_trace(go.Candlestick(
         x=df.index,
-        open=df['Open'].squeeze(), high=df['High'].squeeze(),
-        low=df['Low'].squeeze(), close=df['Close'].squeeze(),
+        open=open_series,
+        high=high_series,
+        low=low_series,
+        close=close_series,
         name='OHLC',
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
-        hovertemplate='Open: %{open:.2f}<br>High: %{high:.2f}<br>Low: %{low:.2f}<br>Close: %{close:.2f}<extra></extra>'
+        # suppress the built-in OHLC tooltip; we overlay a transparent scatter
+        hoverinfo='none',
     ), row=1, col=1)
 
-    close_series = df['Close'].squeeze()
-    ma20 = close_series.rolling(window=20).mean()
-    ma50 = close_series.rolling(window=50).mean()
+    # ── Invisible scatter overlay to carry our custom tooltip for OHLC ──
+    # We build the hovertemplate to conditionally show MA20/MA50:
+    # Plotly doesn't support true per-point conditional templates, so we
+    # encode NaN sentinel and use a workaround: we supply two separate
+    # scatter traces — one for points where both MAs exist, one where only
+    # MA20 is NaN, etc. But the cleanest approach that works reliably is
+    # to pre-build the hovertext string in Python per point.
 
+    hover_texts = []
+    for i in range(len(df)):
+        date_str = df.index[i].strftime('%b %d, %Y')
+        o = open_series.iloc[i]
+        h = high_series.iloc[i]
+        l = low_series.iloc[i]
+        c = close_series.iloc[i]
+        m20 = ma20.iloc[i]
+        m50 = ma50.iloc[i]
+
+        lines = [
+            f"<b style='font-size:13px'>{date_str}</b>",
+            f"Open  : ${o:.2f}",
+            f"High  : ${h:.2f}",
+            f"Low   : ${l:.2f}",
+            f"Close : ${c:.2f}",
+        ]
+        if not np.isnan(m20):
+            lines.append(f"MA20  : ${m20:.2f}")
+        if not np.isnan(m50):
+            lines.append(f"MA50  : ${m50:.2f}")
+
+        hover_texts.append("<br>".join(lines))
+
+    # Transparent scatter sitting on top of the candlestick (at close price)
+    fig.add_trace(go.Scatter(
+        x=df.index,
+        y=close_series,
+        mode='markers',
+        marker=dict(opacity=0, size=12),
+        showlegend=False,
+        hovertemplate='%{text}<extra></extra>',
+        text=hover_texts,
+        name='',
+    ), row=1, col=1)
+
+    # ── MA lines — suppress their default hover (shown via overlay above) ──
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
-        line=dict(color=ma20_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA 20: %{y:.2f}<extra></extra>'
+        line=dict(color=ma20_color, width=1.5, dash='dot'),
+        opacity=0.90,
+        hoverinfo='skip',
     ), row=1, col=1)
 
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
-        line=dict(color=ma50_color, width=1.5, dash='dot'), opacity=0.90,
-        hovertemplate='MA 50: %{y:.2f}<extra></extra>'
+        line=dict(color=ma50_color, width=1.5, dash='dot'),
+        opacity=0.90,
+        hoverinfo='skip',
     ), row=1, col=1)
 
+    # ── Forecast band & line ──
     if predictions is not None and prediction_dates is not None:
         pred_flat = predictions.flatten()
         last_actual_price = float(df['Close'].iloc[-1])
@@ -817,16 +885,18 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='Forecast: %{y:.2f}<extra></extra>'
+            hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast: <b>$%{y:.2f}</b><extra></extra>',
         ), row=1, col=1)
 
+    # ── Volume bars ──
     colors_vol = [vol_up if c >= o else vol_dn
-                  for c, o in zip(close_series, df['Open'].squeeze())]
+                  for c, o in zip(close_series, open_series)]
 
     fig.add_trace(go.Bar(
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
-        opacity=0.60, showlegend=False
+        opacity=0.60, showlegend=False,
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>',
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -836,7 +906,9 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         xaxis2=dict(**PLOTLY_LAYOUT['xaxis'], rangeslider=dict(visible=False)),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
-        height=560, dragmode='pan', hovermode='x unified',
+        height=560, dragmode='pan',
+        # Use 'closest' instead of 'x unified' so only our overlay fires
+        hovermode='closest',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
@@ -880,6 +952,7 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
+        # ── Fix #2: removed duplicate %{x|%b %d} — only keep full date format ──
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
@@ -895,7 +968,10 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
                    font=dict(size=16, color=title_color), x=0.02),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
-        height=380, hovermode='x', showlegend=False
+        height=380,
+        # ── Fix #2: use 'closest' to avoid the extra x-axis date header ──
+        hovermode='closest',
+        showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
@@ -921,6 +997,7 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
+        # ── Fix #3: single clean tooltip — no duplicate date from hovermode ──
         hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
@@ -930,7 +1007,9 @@ def build_returns_chart(stock_data, days=252):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=320, hovermode='x',
+        height=320,
+        # ── Fix #3: 'closest' removes the repeated x-axis date header ──
+        hovermode='closest',
     ))
     fig.update_layout(**layout)
     return fig
@@ -960,7 +1039,8 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Vol: <b>%{y:,.0f}</b><extra></extra>'
+        # ── Fix #3: single clean tooltip — no duplicate date ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -969,7 +1049,10 @@ def build_volume_profile(stock_data, days=90):
                    font=dict(size=16, color=title_color), x=0.02),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
-        height=280, hovermode='x', showlegend=False
+        height=280,
+        # ── Fix #3: 'closest' removes the repeated x-axis date header ──
+        hovermode='closest',
+        showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
