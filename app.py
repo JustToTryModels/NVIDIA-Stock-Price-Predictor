@@ -26,22 +26,19 @@ if 'theme' not in st.session_state:
     st.session_state.theme = 'System 🖳'
 
 # ==============================
-# 🔹 Detect System Theme & Resolve Effective Theme
+# 🔹 FIXED: Real-Time System Theme Detection
 # ==============================
 def get_effective_theme(theme_choice):
     if theme_choice == 'System 🖳':
-        # This JS:
-        # 1. Detects the current system theme
-        # 2. Compares it to what's in the URL
-        # 3. If different (or missing), updates the URL → triggers Streamlit rerun
-        # 4. Also listens for LIVE changes (e.g. user switches OS dark/light mode)
-        system_theme_js = """
+        # ── Step 1: Inject JS that detects system theme AND listens for live changes ──
+        st.markdown("""
         <script>
         (function() {
             function applyTheme(isDark) {
                 const theme = isDark ? 'dark' : 'light';
-                const url = new URL(window.location);
-                if (url.searchParams.get('sys_theme') !== theme) {
+                const url = new URL(window.location.href);
+                const current = url.searchParams.get('sys_theme');
+                if (current !== theme) {
                     url.searchParams.set('sys_theme', theme);
                     window.location.replace(url.toString());
                 }
@@ -49,29 +46,47 @@ def get_effective_theme(theme_choice):
 
             const mq = window.matchMedia('(prefers-color-scheme: dark)');
 
-            // Apply immediately on load
+            // Detect on initial load
             applyTheme(mq.matches);
 
-            // Apply whenever OS theme changes (real-time)
+            // Listen for live OS theme changes (e.g. user switches dark/light mid-session)
             mq.addEventListener('change', function(e) {
                 applyTheme(e.matches);
             });
         })();
         </script>
-        """
-        st.markdown(system_theme_js, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
+        # ── Step 2: Python reads the query param set by JS ──
         sys_theme = st.query_params.get('sys_theme', None)
 
         if sys_theme is None:
-            # First ever load before JS has set the param — stop and wait for reload
+            # Very first render before JS has fired — halt and wait for redirect
+            st.markdown("""
+            <style>
+                .stApp { opacity: 0 !important; }
+            </style>
+            """, unsafe_allow_html=True)
             st.stop()
 
         return 'Dark' if sys_theme == 'dark' else 'Light'
 
     elif theme_choice == 'Light ☼':
+        # Clear sys_theme param if user manually picks Light
+        try:
+            if 'sys_theme' in st.query_params:
+                del st.query_params['sys_theme']
+        except Exception:
+            pass
         return 'Light'
+
     else:
+        # Clear sys_theme param if user manually picks Dark
+        try:
+            if 'sys_theme' in st.query_params:
+                del st.query_params['sys_theme']
+        except Exception:
+            pass
         return 'Dark'
 
 effective_theme = get_effective_theme(st.session_state.theme)
