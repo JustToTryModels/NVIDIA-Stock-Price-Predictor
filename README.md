@@ -62,7 +62,8 @@ A comprehensive time series forecasting project that analyzes and predicts **NVI
 ## 🎯 Why NVIDIA?
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/f38538a885f7988c11d8c4e8a1025502d76402f3/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg" alt="NVIDIA Logo" width="400"/>
+  <img src="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/f38538a885f7988c11d8c4e8a1025502d76402f3/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg#gh-dark-mode-only" alt="NVIDIA Logo" width="400"/>
+  <img src="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/f38538a885f7988c11d8c4e8a1025502d76402f3/Data/Images%20%26%20GIF/NVIDIA_logo_black.svg#gh-light-mode-only" alt="NVIDIA Logo" width="400"/>
 </div>
 
 NVIDIA presents a compelling subject for stock price analysis due to several key factors:
@@ -449,4 +450,3 @@ jupyter notebook Notebook/NVIDIA_Stock_Price_Analysis.ipynb
 
   If this project was helpful, please consider giving it a ⭐
 </div>
-```
