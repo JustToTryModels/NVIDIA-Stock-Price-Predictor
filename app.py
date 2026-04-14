@@ -184,6 +184,7 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
+    /* Light mode selectbox */
     [data-testid="stSelectbox"] > div > div {
         background: rgba(255,255,255,0.95) !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -193,6 +194,7 @@ def apply_theme_css(theme):
     [data-testid="stSelectbox"] > div > div > div {
         color: #1a2e05 !important;
     }
+    /* Light dropdown popover */
     [data-baseweb="popover"] [data-baseweb="menu"] {
         background: #ffffff !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -418,6 +420,7 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
+    /* ── Dark mode selectbox: closed state ── */
     [data-testid="stSelectbox"] > div > div {
         background: rgba(22,27,39,0.95) !important;
         border: 1px solid rgba(118,185,0,0.35) !important;
@@ -430,6 +433,7 @@ def apply_theme_css(theme):
         fill: #e2e8f0 !important;
     }
 
+    /* ── Dark mode dropdown popover/listbox ── */
     [data-baseweb="popover"],
     [data-baseweb="popover"] > div,
     [data-baseweb="popover"] [data-baseweb="menu"] {
@@ -439,6 +443,7 @@ def apply_theme_css(theme):
         box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
     }
 
+    /* Every list item — base state */
     [data-baseweb="popover"] li,
     [data-baseweb="popover"] [role="option"] {
         background: #161b27 !important;
@@ -446,12 +451,14 @@ def apply_theme_css(theme):
         font-family: 'Inter', sans-serif !important;
     }
 
+    /* Non-selected item hover */
     [data-baseweb="popover"] li:hover,
     [data-baseweb="popover"] [role="option"]:hover {
         background: rgba(118,185,0,0.15) !important;
         color: #e2e8f0 !important;
     }
 
+    /* Selected item — always green, never white */
     [data-baseweb="popover"] [aria-selected="true"],
     [data-baseweb="popover"] li[aria-selected="true"] {
         background: rgba(118,185,0,0.22) !important;
@@ -459,6 +466,7 @@ def apply_theme_css(theme):
         font-weight: 600 !important;
     }
 
+    /* Selected item on hover — keep green, do NOT turn white */
     [data-baseweb="popover"] [aria-selected="true"]:hover,
     [data-baseweb="popover"] li[aria-selected="true"]:hover {
         background: rgba(118,185,0,0.30) !important;
@@ -466,6 +474,7 @@ def apply_theme_css(theme):
         font-weight: 600 !important;
     }
 
+    /* Scrollbar inside dropdown */
     [data-baseweb="popover"] ::-webkit-scrollbar { width: 4px; }
     [data-baseweb="popover"] ::-webkit-scrollbar-track { background: #0d1117; }
     [data-baseweb="popover"] ::-webkit-scrollbar-thumb { background: rgba(118,185,0,0.4); border-radius: 2px; }
@@ -650,6 +659,7 @@ def get_plotly_layout():
             )
         )
 
+
 # ==============================
 # 🔹 Load Model (Cached)
 # ==============================
@@ -662,6 +672,7 @@ def load_nvidia_model():
     except Exception as e:
         return None
 
+
 # ==============================
 # 🔹 Fetch Stock Data (Cached)
 # ==============================
@@ -673,53 +684,39 @@ def get_stock_data(ticker='NVDA'):
     except Exception as e:
         return None
 
-# --- Live quote (real-time on rerun; caching kept but shorter TTL for more frequent updates) ---
-@st.cache_data(ttl=60)
+
+@st.cache_data(ttl=300)
 def get_live_quote(ticker='NVDA'):
     try:
         t = yf.Ticker(ticker)
-
-        info = None
-        try:
-            info = t.fast_info
-        except Exception:
-            info = None
-
-        curr_price = getattr(info, 'last_price', None) if info is not None else None
-        prev_close = getattr(info, 'previous_close', None) if info is not None else None
-
-        # Fallback to history if fast_info is missing/None
-        if curr_price is None or prev_close is None:
-            hist = t.history(period='5d', auto_adjust=True)
-            if hist is not None and len(hist) >= 2:
-                prev_close = float(hist['Close'].iloc[-2])
-                curr_price = float(hist['Close'].iloc[-1])
-
-        if curr_price is None or prev_close is None:
-            return None
-
-        curr_price = float(curr_price)
-        prev_close = float(prev_close)
-
+        info = t.fast_info
+        hist = t.history(period='2d')
+        if len(hist) >= 2:
+            prev_close = float(hist['Close'].iloc[-2])
+            curr_price = float(hist['Close'].iloc[-1])
+        else:
+            curr_price = float(info.last_price)
+            prev_close = float(info.previous_close) if hasattr(info, 'previous_close') else curr_price
         change = curr_price - prev_close
-        change_pct = (change / prev_close) * 100 if prev_close != 0 else 0.0
-
+        change_pct = (change / prev_close) * 100
         return {
             'price': curr_price,
             'prev_close': prev_close,
             'change': change,
             'change_pct': change_pct,
-            'market_cap': getattr(info, 'market_cap', None) if info is not None else None,
-            'volume': getattr(info, 'three_month_average_volume', None) if info is not None else None,
+            'market_cap': getattr(info, 'market_cap', None),
+            'volume': getattr(info, 'three_month_average_volume', None),
         }
     except Exception:
         return None
+
 
 # ==============================
 # 🔹 Business Days
 # ==============================
 def generate_business_days(start_date, num_days):
     return pd.bdate_range(start=start_date, periods=num_days).tolist()
+
 
 # ==============================
 # 🔹 Prediction Function
@@ -736,6 +733,7 @@ def predict_next_business_days(model, data, look_back=5, days=5):
         last_sequence = np.append(last_sequence[1:], pred, axis=0)
     predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
     return predictions
+
 
 # ==============================
 # 🔹 Chart Builders
@@ -756,34 +754,43 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     )
 
     if IS_DARK:
-        inc_line, inc_fill   = '#4ade80', 'rgba(74,222,128,0.8)'
-        dec_line, dec_fill   = '#f87171', 'rgba(248,113,113,0.8)'
+        inc_line, inc_fill = '#4ade80', 'rgba(74,222,128,0.8)'
+        dec_line, dec_fill = '#f87171', 'rgba(248,113,113,0.8)'
         ma20_color, ma50_color = '#f59e0b', '#60a5fa'
-        marker_border        = '#0a0a0f'
-        vol_up, vol_dn       = '#4ade80', '#f87171'
-        title_color          = '#f1f5f9'
-        grid_color           = 'rgba(255,255,255,0.04)'
-        tri_up_color         = '#4ade80'
-        tri_dn_color         = '#f87171'
+        marker_border = '#0a0a0f'
+        vol_up, vol_dn = '#4ade80', '#f87171'
+        title_color = '#f1f5f9'
+        grid_color = 'rgba(255,255,255,0.04)'
     else:
-        inc_line, inc_fill   = '#16a34a', 'rgba(22,163,74,0.85)'
-        dec_line, dec_fill   = '#dc2626', 'rgba(220,38,38,0.85)'
+        inc_line, inc_fill = '#16a34a', 'rgba(22,163,74,0.85)'
+        dec_line, dec_fill = '#dc2626', 'rgba(220,38,38,0.85)'
         ma20_color, ma50_color = '#d97706', '#2563eb'
-        marker_border        = '#ffffff'
-        vol_up, vol_dn       = '#16a34a', '#dc2626'
-        title_color          = '#1a2e05'
-        grid_color           = 'rgba(118,185,0,0.08)'
-        tri_up_color         = '#16a34a'
-        tri_dn_color         = '#dc2626'
+        marker_border = '#ffffff'
+        vol_up, vol_dn = '#16a34a', '#dc2626'
+        title_color = '#1a2e05'
+        grid_color = 'rgba(118,185,0,0.08)'
 
     close_series = df['Close'].squeeze()
     open_series  = df['Open'].squeeze()
     high_series  = df['High'].squeeze()
     low_series   = df['Low'].squeeze()
+
+    # ── Compute MAs before adding traces so we can use them in custom hover ──
     ma20 = close_series.rolling(window=20).mean()
     ma50 = close_series.rolling(window=50).mean()
 
-    # ── Candlestick ──
+    # ── Build per-point customdata: [open, high, low, close, ma20, ma50] ──
+    # ma20/ma50 will be NaN for early points — we handle that in the template
+    customdata = np.column_stack([
+        open_series.values,
+        high_series.values,
+        low_series.values,
+        close_series.values,
+        ma20.values,
+        ma50.values,
+    ])
+
+    # ── Candlestick — hoverinfo='none' so we supply our own via customdata ──
     fig.add_trace(go.Candlestick(
         x=df.index,
         open=open_series,
@@ -794,10 +801,18 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         increasing=dict(line=dict(color=inc_line, width=1), fillcolor=inc_fill),
         decreasing=dict(line=dict(color=dec_line, width=1), fillcolor=dec_fill),
         whiskerwidth=0.5,
+        # suppress the built-in OHLC tooltip; we overlay a transparent scatter
         hoverinfo='none',
     ), row=1, col=1)
 
-    # ── Build per-point hovertext: centered date + colored triangles ──
+    # ── Invisible scatter overlay to carry our custom tooltip for OHLC ──
+    # We build the hovertemplate to conditionally show MA20/MA50:
+    # Plotly doesn't support true per-point conditional templates, so we
+    # encode NaN sentinel and use a workaround: we supply two separate
+    # scatter traces — one for points where both MAs exist, one where only
+    # MA20 is NaN, etc. But the cleanest approach that works reliably is
+    # to pre-build the hovertext string in Python per point.
+
     hover_texts = []
     for i in range(len(df)):
         date_str = df.index[i].strftime('%b %d, %Y')
@@ -808,53 +823,45 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         m20 = ma20.iloc[i]
         m50 = ma50.iloc[i]
 
-        is_green = c >= o
-        triangle  = '▲' if is_green else '▼'
-        tri_color = tri_up_color if is_green else tri_dn_color
-
-        txt = (
-            f"<b style='display:block; text-align:center;'>"
-            f"<span style='color:{tri_color};'>{triangle}</span>"
-            f"&nbsp;{date_str}&nbsp;"
-            f"</b>"
-            f"<br>Open  : ${o:.2f}"
-            f"<br>High  : ${h:.2f}"
-            f"<br>Low   : ${l:.2f}"
-            f"<br>Close : ${c:.2f}"
-        )
+        lines = [
+            f"<b style='font-size:13px'>{date_str}</b>",
+            f"Open  : ${o:.2f}",
+            f"High  : ${h:.2f}",
+            f"Low   : ${l:.2f}",
+            f"Close : ${c:.2f}",
+        ]
         if not np.isnan(m20):
-            txt += f"<br>MA 20 : ${m20:.2f}"
+            lines.append(f"MA20  : ${m20:.2f}")
         if not np.isnan(m50):
-            txt += f"<br>MA 50 : ${m50:.2f}"
+            lines.append(f"MA50  : ${m50:.2f}")
 
-        hover_texts.append(txt)
+        hover_texts.append("<br>".join(lines))
 
-    # ── Invisible ghost scatter carrying the full custom tooltip ──
+    # Transparent scatter sitting on top of the candlestick (at close price)
     fig.add_trace(go.Scatter(
         x=df.index,
         y=close_series,
         mode='markers',
         marker=dict(opacity=0, size=12),
         showlegend=False,
-        hovertemplate='%{hovertext}<extra></extra>',
-        hovertext=hover_texts,
+        hovertemplate='%{text}<extra></extra>',
+        text=hover_texts,
         name='',
     ), row=1, col=1)
 
-    # ── MA20 ──
+    # ── MA lines — suppress their default hover (shown via overlay above) ──
     fig.add_trace(go.Scatter(
         x=df.index, y=ma20, name='MA 20',
         line=dict(color=ma20_color, width=1.5, dash='dot'),
         opacity=0.90,
-        hoverinfo='none',
+        hoverinfo='skip',
     ), row=1, col=1)
 
-    # ── MA50 ──
     fig.add_trace(go.Scatter(
         x=df.index, y=ma50, name='MA 50',
         line=dict(color=ma50_color, width=1.5, dash='dot'),
         opacity=0.90,
-        hoverinfo='none',
+        hoverinfo='skip',
     ), row=1, col=1)
 
     # ── Forecast band & line ──
@@ -878,7 +885,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
             mode='lines+markers',
             marker=dict(size=7, color='#76b900', symbol='circle',
                         line=dict(color=marker_border, width=1.5)),
-            hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast : $%{y:.2f}<extra></extra>',
+            hovertemplate='<b>%{x|%b %d, %Y}</b><br>Forecast: <b>$%{y:.2f}</b><extra></extra>',
         ), row=1, col=1)
 
     # ── Volume bars ──
@@ -889,7 +896,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         x=df.index, y=df['Volume'].squeeze(),
         name='Volume', marker_color=colors_vol,
         opacity=0.60, showlegend=False,
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume : %{y:,.0f}<extra></extra>',
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>',
     ), row=2, col=1)
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -900,12 +907,14 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Price (USD)'),
         yaxis2=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         height=560, dragmode='pan',
+        # Use 'closest' instead of 'x unified' so only our overlay fires
         hovermode='closest',
     ))
     fig.update_layout(**layout)
     fig.update_xaxes(showgrid=True, gridcolor=grid_color)
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
     return fig
+
 
 def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -943,7 +952,8 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         mode='lines+markers',
         marker=dict(size=10, color=colors, symbol='circle',
                     line=dict(color=marker_border, width=2)),
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price : <b>$%{y:.2f}</b><extra></extra>',
+        # ── Fix #2: removed duplicate %{x|%b %d} — only keep full date format ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Price: <b>$%{y:.2f}</b><extra></extra>'
     ))
     fig.add_hline(
         y=last_actual_price,
@@ -959,11 +969,13 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], tickformat='%b %d', title='Date'),
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Predicted Price (USD)'),
         height=380,
+        # ── Fix #2: use 'closest' to avoid the extra x-axis date header ──
         hovermode='closest',
         showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
+
 
 def build_returns_chart(stock_data, days=252):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -985,7 +997,8 @@ def build_returns_chart(stock_data, days=252):
         x=returns.index, y=returns.values,
         marker_color=colors, opacity=0.80,
         name='Daily Return %',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return : <b>%{y:.2f}%</b><extra></extra>',
+        # ── Fix #3: single clean tooltip — no duplicate date from hovermode ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Return: <b>%{y:.2f}%</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -995,10 +1008,12 @@ def build_returns_chart(stock_data, days=252):
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Return (%)'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
         height=320,
+        # ── Fix #3: 'closest' removes the repeated x-axis date header ──
         hovermode='closest',
     ))
     fig.update_layout(**layout)
     return fig
+
 
 def build_volume_profile(stock_data, days=90):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -1024,7 +1039,8 @@ def build_volume_profile(stock_data, days=90):
         fill='tozeroy', fillcolor=fill_color,
         line=dict(color=line_color, width=1.5),
         name='Volume',
-        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume : <b>%{y:,.0f}</b><extra></extra>',
+        # ── Fix #3: single clean tooltip — no duplicate date ──
+        hovertemplate='<b>%{x|%b %d, %Y}</b><br>Volume: <b>%{y:,.0f}</b><extra></extra>'
     ))
 
     layout = dict(**PLOTLY_LAYOUT)
@@ -1034,11 +1050,13 @@ def build_volume_profile(stock_data, days=90):
         yaxis=dict(**PLOTLY_LAYOUT['yaxis'], title='Volume'),
         xaxis=dict(**PLOTLY_LAYOUT['xaxis'], title='Date'),
         height=280,
+        # ── Fix #3: 'closest' removes the repeated x-axis date header ──
         hovermode='closest',
         showlegend=False
     ))
     fig.update_layout(**layout)
     return fig
+
 
 # ==============================
 # 🔹 Load Model & Initial Data
@@ -1155,6 +1173,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+
 # ==============================
 # 🔹 Hero Header
 # ==============================
@@ -1165,11 +1184,11 @@ hero_logo_url = (
     'https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/'
     '53b81d17aa5dbac6c1a29830ad4974ecd510a22d/Data/Images%20%26%20GIF/NVIDIA_logo_black.svg'
 )
-hero_logo_filter  = 'brightness(1.1)' if IS_DARK else 'brightness(0.82) saturate(1.2)'
+hero_logo_filter = 'brightness(1.1)' if IS_DARK else 'brightness(0.82) saturate(1.2)'
 hero_logo_opacity = '0.92' if IS_DARK else '0.90'
 hero_subtitle_color = '#64748b' if IS_DARK else '#5a7a3a'
-hero_tag_color    = '#76b900' if IS_DARK else '#4a7c00'
-hero_h1_color     = '#f1f5f9' if IS_DARK else '#1a2e05'
+hero_tag_color = '#76b900' if IS_DARK else '#4a7c00'
+hero_h1_color = '#f1f5f9' if IS_DARK else '#1a2e05'
 
 st.markdown(f"""
 <div class='hero-banner'>
@@ -1196,8 +1215,9 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+
 # ==============================
-# 🔹 Live Quote Strip  (ADDED IN CODE-2: same position/format as Code-1)
+# 🔹 Live Quote Strip
 # ==============================
 quote = get_live_quote(STOCK)
 
@@ -1206,11 +1226,8 @@ if quote:
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric(
-            "NVDA · Last Price",
-            f"${quote['price']:.2f}",
-            delta=f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)"
-        )
+        st.metric("NVDA · Last Price", f"${quote['price']:.2f}",
+                  delta=f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)")
     with c2:
         st.metric("Previous Close", f"${quote['prev_close']:.2f}")
     with c3:
@@ -1379,12 +1396,12 @@ if st.session_state.prediction_results is not None:
         st.markdown("<br>", unsafe_allow_html=True)
 
         pred_df = pd.DataFrame({
-            'Business Day':    [f"Day {i+1}" for i in range(stored_num_days)],
-            'Date':            [d.strftime('%A, %b %d %Y') for d in prediction_dates],
-            'Predicted Price': [f"${p:.2f}" for p in pred_flat],
-            'Change vs Close': [f"{p - last_actual_price:+.2f}" for p in pred_flat],
-            'Change %':        [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" for p in pred_flat],
-            'Signal':          ['🟢 BUY' if p >= last_actual_price else '🔴 SELL' for p in pred_flat]
+            'Business Day':   [f"Day {i+1}" for i in range(stored_num_days)],
+            'Date':           [d.strftime('%A, %b %d %Y') for d in prediction_dates],
+            'Predicted Price':[f"${p:.2f}" for p in pred_flat],
+            'Change vs Close':[f"{p - last_actual_price:+.2f}" for p in pred_flat],
+            'Change %':       [f"{((p - last_actual_price)/last_actual_price*100):+.2f}%" for p in pred_flat],
+            'Signal':         ['🟢 BUY' if p >= last_actual_price else '🔴 SELL' for p in pred_flat]
         })
 
         st.markdown("""
