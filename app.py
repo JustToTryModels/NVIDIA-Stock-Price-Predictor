@@ -315,12 +315,6 @@ def apply_theme_css(theme):
         transform: translateY(0px);
         box-shadow: 0 2px 8px rgba(229,46,113,0.4);
     }
-
-    /* Bigger metric value for NVDA Last Price live block */
-    .nvda-live-price [data-testid="stMetricValue"] {
-        font-size: 2.1rem !important;
-        font-weight: 800 !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -582,12 +576,6 @@ def apply_theme_css(theme):
         transform: translateY(0px);
         box-shadow: 0 2px 8px rgba(229,46,113,0.4);
     }
-
-    /* Bigger metric value for NVDA Last Price live block */
-    .nvda-live-price [data-testid="stMetricValue"] {
-        font-size: 2.1rem !important;
-        font-weight: 800 !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -688,7 +676,8 @@ def get_stock_data(ticker='NVDA'):
         return None
 
 
-@st.cache_data(ttl=300)
+# NOTE: TTL lowered to keep the displayed quote blocks more real-time
+@st.cache_data(ttl=60)
 def get_live_quote(ticker='NVDA'):
     try:
         t = yf.Ticker(ticker)
@@ -798,7 +787,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         hoverinfo='none',
     ), row=1, col=1)
 
-    # ── Build per-point hovertext ──
+    # ── Build per-point hovertext: centered date + colored triangles ──
     hover_texts = []
     for i in range(len(df)):
         date_str = df.index[i].strftime('%b %d, %Y')
@@ -830,7 +819,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
 
         hover_texts.append(txt)
 
-    # ── Ghost scatter for tooltip ──
+    # ── Invisible ghost scatter carrying the full custom tooltip ──
     fig.add_trace(go.Scatter(
         x=df.index,
         y=close_series,
@@ -1204,34 +1193,6 @@ st.markdown(f"""
 
 
 # ==============================
-# 🔹 Live Quote Strip (Top)
-# ==============================
-quote = get_live_quote(STOCK)
-
-if quote:
-    change_arrow = '▲' if quote['change'] >= 0 else '▼'
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.metric("NVDA · Last Price", f"${quote['price']:.2f}",
-                  delta=f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)")
-    with c2:
-        st.metric("Previous Close", f"${quote['prev_close']:.2f}")
-    with c3:
-        mktcap = quote.get('market_cap')
-        if mktcap and mktcap > 0:
-            mktcap_str = f"${mktcap/1e12:.2f}T" if mktcap >= 1e12 else f"${mktcap/1e9:.1f}B"
-        else:
-            mktcap_str = "N/A"
-        st.metric("Market Cap", mktcap_str)
-    with c4:
-        vol = quote.get('volume')
-        vol_str = f"{vol/1e6:.1f}M" if vol and vol > 0 else "N/A"
-        st.metric("Avg Volume", vol_str)
-
-st.markdown("---")
-
-# ==============================
 # 🔹 Session State Init
 # ==============================
 if 'prediction_results' not in st.session_state:
@@ -1239,71 +1200,41 @@ if 'prediction_results' not in st.session_state:
 if 'last_num_days' not in st.session_state:
     st.session_state.last_num_days = 5
 
+
 # ==============================
-# 🔹 Live Market Data Strip (Above Forecast Button)
+# 🔹 Live Quote Blocks (Placed right above the Forecast button)
 # ==============================
-# Re-use the already-fetched quote (same TTL=300s cache, no extra network call)
-quote_pre = get_live_quote(STOCK)
+quote = get_live_quote(STOCK)
 
-if quote_pre:
-    pre_change_arrow = '▲' if quote_pre['change'] >= 0 else '▼'
-    pre_sign         = '+' if quote_pre['change'] >= 0 else '-'
+if quote:
+    change_arrow = '▲' if quote['change'] >= 0 else '▼'
 
-    # Format helpers
-    pre_mktcap = quote_pre.get('market_cap')
-    if pre_mktcap and pre_mktcap > 0:
-        pre_mktcap_str = f"${pre_mktcap/1e12:.2f}T" if pre_mktcap >= 1e12 else f"${pre_mktcap/1e9:.1f}B"
-    else:
-        pre_mktcap_str = "N/A"
+    # Make "NVIDIA LAST PRICE" slightly bigger (wider column + delta line)
+    c1, c2, c3, c4 = st.columns([1.35, 1, 1, 1])
 
-    pre_vol = quote_pre.get('volume')
-    pre_vol_str = f"{pre_vol/1e6:.1f}M" if pre_vol and pre_vol > 0 else "N/A"
-
-    # ── Section label ──
-    live_label_color = '#76b900' if IS_DARK else '#4a7c00'
-    live_sub_color   = '#64748b' if IS_DARK else '#5a7a3a'
-    st.markdown(f"""
-    <div style='display:flex; align-items:center; gap:10px; margin-bottom:14px;'>
-        <span class='status-dot'></span>
-        <span style='color:{live_label_color}; font-size:0.82rem; font-weight:700;
-                     letter-spacing:0.12em; text-transform:uppercase;'>Live Market Data</span>
-        <span style='color:{live_sub_color}; font-size:0.75rem;'>· refreshes every 5 min</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # ── 4-column metric row ──
-    # Column widths: give col_a (NVDA Last Price) slightly more space so its value renders bigger
-    col_a, col_b, col_c, col_d = st.columns([1.35, 1, 1, 1])
-
-    # Wrap col_a in the special CSS class so the value font-size override applies
-    with col_a:
-        st.markdown("<div class='nvda-live-price'>", unsafe_allow_html=True)
+    with c1:
         st.metric(
-            label="NVIDIA Last Price",
-            value=f"${quote_pre['price']:.2f}",
-            delta=f"{pre_change_arrow} {abs(quote_pre['change']):.2f} ({abs(quote_pre['change_pct']):.2f}%)"
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col_b:
-        st.metric(
-            label="Previous Close",
-            value=f"${quote_pre['prev_close']:.2f}"
+            "NVIDIA LAST PRICE",
+            f"${quote['price']:.2f}",
+            delta=f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)"
         )
 
-    with col_c:
-        st.metric(
-            label="Market Cap",
-            value=pre_mktcap_str
-        )
+    with c2:
+        st.metric("PREVIOUS CLOSE", f"${quote['prev_close']:.2f}")
 
-    with col_d:
-        st.metric(
-            label="Avg Volume",
-            value=pre_vol_str
-        )
+    with c3:
+        mktcap = quote.get('market_cap')
+        if mktcap and mktcap > 0:
+            mktcap_str = f"${mktcap/1e12:.2f}T" if mktcap >= 1e12 else f"${mktcap/1e9:.1f}B"
+        else:
+            mktcap_str = "N/A"
+        st.metric("MARKET CAP", mktcap_str)
 
-    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    with c4:
+        vol = quote.get('volume')
+        vol_str = f"{vol/1e6:.1f}M" if vol and vol > 0 else "N/A"
+        st.metric("AVG VOLUME", vol_str)
+
 
 # ==============================
 # 🔹 Predict Button
@@ -1315,6 +1246,8 @@ with col_btn2:
         key='forecast-button',
         use_container_width=True
     )
+
+st.markdown("---")
 
 if run_prediction:
     if model is None:
