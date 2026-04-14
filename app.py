@@ -650,7 +650,6 @@ def get_plotly_layout():
             )
         )
 
-
 # ==============================
 # 🔹 Load Model (Cached)
 # ==============================
@@ -663,7 +662,6 @@ def load_nvidia_model():
     except Exception as e:
         return None
 
-
 # ==============================
 # 🔹 Fetch Stock Data (Cached)
 # ==============================
@@ -675,39 +673,53 @@ def get_stock_data(ticker='NVDA'):
     except Exception as e:
         return None
 
-
-@st.cache_data(ttl=300)
+# --- Live quote (real-time on rerun; caching kept but shorter TTL for more frequent updates) ---
+@st.cache_data(ttl=60)
 def get_live_quote(ticker='NVDA'):
     try:
         t = yf.Ticker(ticker)
-        info = t.fast_info
-        hist = t.history(period='2d')
-        if len(hist) >= 2:
-            prev_close = float(hist['Close'].iloc[-2])
-            curr_price = float(hist['Close'].iloc[-1])
-        else:
-            curr_price = float(info.last_price)
-            prev_close = float(info.previous_close) if hasattr(info, 'previous_close') else curr_price
+
+        info = None
+        try:
+            info = t.fast_info
+        except Exception:
+            info = None
+
+        curr_price = getattr(info, 'last_price', None) if info is not None else None
+        prev_close = getattr(info, 'previous_close', None) if info is not None else None
+
+        # Fallback to history if fast_info is missing/None
+        if curr_price is None or prev_close is None:
+            hist = t.history(period='5d', auto_adjust=True)
+            if hist is not None and len(hist) >= 2:
+                prev_close = float(hist['Close'].iloc[-2])
+                curr_price = float(hist['Close'].iloc[-1])
+
+        if curr_price is None or prev_close is None:
+            return None
+
+        curr_price = float(curr_price)
+        prev_close = float(prev_close)
+
         change = curr_price - prev_close
-        change_pct = (change / prev_close) * 100
+        change_pct = (change / prev_close) * 100 if prev_close != 0 else 0.0
+
         return {
             'price': curr_price,
             'prev_close': prev_close,
             'change': change,
             'change_pct': change_pct,
-            'market_cap': getattr(info, 'market_cap', None),
-            'volume': getattr(info, 'three_month_average_volume', None),
+            'market_cap': getattr(info, 'market_cap', None) if info is not None else None,
+            'volume': getattr(info, 'three_month_average_volume', None) if info is not None else None,
         }
     except Exception:
         return None
-
 
 # ==============================
 # 🔹 Business Days
 # ==============================
 def generate_business_days(start_date, num_days):
     return pd.bdate_range(start=start_date, periods=num_days).tolist()
-
 
 # ==============================
 # 🔹 Prediction Function
@@ -724,7 +736,6 @@ def predict_next_business_days(model, data, look_back=5, days=5):
         last_sequence = np.append(last_sequence[1:], pred, axis=0)
     predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
     return predictions
-
 
 # ==============================
 # 🔹 Chart Builders
@@ -896,7 +907,6 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
     fig.update_yaxes(showgrid=True, gridcolor=grid_color)
     return fig
 
-
 def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     PLOTLY_LAYOUT = get_plotly_layout()
     pred_flat = predictions.flatten()
@@ -955,7 +965,6 @@ def build_forecast_chart(prediction_dates, predictions, last_actual_price):
     fig.update_layout(**layout)
     return fig
 
-
 def build_returns_chart(stock_data, days=252):
     PLOTLY_LAYOUT = get_plotly_layout()
     df = stock_data.tail(days).copy()
@@ -990,7 +999,6 @@ def build_returns_chart(stock_data, days=252):
     ))
     fig.update_layout(**layout)
     return fig
-
 
 def build_volume_profile(stock_data, days=90):
     PLOTLY_LAYOUT = get_plotly_layout()
@@ -1031,7 +1039,6 @@ def build_volume_profile(stock_data, days=90):
     ))
     fig.update_layout(**layout)
     return fig
-
 
 # ==============================
 # 🔹 Load Model & Initial Data
@@ -1148,7 +1155,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-
 # ==============================
 # 🔹 Hero Header
 # ==============================
@@ -1190,9 +1196,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-
 # ==============================
-# 🔹 Live Quote Strip
+# 🔹 Live Quote Strip  (ADDED IN CODE-2: same position/format as Code-1)
 # ==============================
 quote = get_live_quote(STOCK)
 
@@ -1201,8 +1206,11 @@ if quote:
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("NVDA · Last Price", f"${quote['price']:.2f}",
-                  delta=f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)")
+        st.metric(
+            "NVDA · Last Price",
+            f"${quote['price']:.2f}",
+            delta=f"{change_arrow} {abs(quote['change']):.2f} ({abs(quote['change_pct']):.2f}%)"
+        )
     with c2:
         st.metric("Previous Close", f"${quote['prev_close']:.2f}")
     with c3:
