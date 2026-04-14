@@ -23,42 +23,7 @@ st.set_page_config(
 # 🔹 Theme State Init (MUST be before any CSS)
 # ==============================
 if 'theme' not in st.session_state:
-    st.session_state.theme = 'System 🖳'
-
-# ==============================
-# 🔹 Detect System Theme & Resolve Effective Theme
-# ==============================
-def get_effective_theme(theme_choice):
-    if theme_choice == 'System 🖳':
-        system_theme_js = """
-        <script>
-        (function() {
-            const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = isDark ? 'dark' : 'light';
-            if (!sessionStorage.getItem('systemThemeSet')) {
-                sessionStorage.setItem('systemTheme', theme);
-                sessionStorage.setItem('systemThemeSet', 'true');
-            }
-            const url = new URL(window.location);
-            const current = url.searchParams.get('sys_theme');
-            if (current !== theme) {
-                url.searchParams.set('sys_theme', theme);
-                window.history.replaceState({}, '', url);
-            }
-        })();
-        </script>
-        """
-        st.markdown(system_theme_js, unsafe_allow_html=True)
-        query_params = st.query_params
-        sys_theme = query_params.get('sys_theme', 'dark')
-        return 'Dark' if sys_theme == 'dark' else 'Light'
-    elif theme_choice == 'Light ☼':
-        return 'Light'
-    else:
-        return 'Dark'
-
-effective_theme = get_effective_theme(st.session_state.theme)
-IS_DARK = effective_theme == 'Dark'
+    st.session_state.theme = 'Dark'
 
 # ==============================
 # 🔹 Global CSS Styling (Theme-Aware)
@@ -184,31 +149,11 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
-    /* Light mode selectbox */
     [data-testid="stSelectbox"] > div > div {
-        background: rgba(255,255,255,0.95) !important;
-        border: 1px solid rgba(118,185,0,0.35) !important;
-        border-radius: 10px !important;
-        color: #1a2e05 !important;
-    }
-    [data-testid="stSelectbox"] > div > div > div {
-        color: #1a2e05 !important;
-    }
-    /* Light dropdown popover */
-    [data-baseweb="popover"] [data-baseweb="menu"] {
-        background: #ffffff !important;
-        border: 1px solid rgba(118,185,0,0.35) !important;
-        border-radius: 10px !important;
-        box-shadow: 0 8px 24px rgba(118,185,0,0.12) !important;
-    }
-    [data-baseweb="popover"] [role="option"] {
-        background: #ffffff !important;
-        color: #1a2e05 !important;
-    }
-    [data-baseweb="popover"] [role="option"]:hover,
-    [data-baseweb="popover"] [aria-selected="true"] {
-        background: rgba(118,185,0,0.12) !important;
-        color: #1a2e05 !important;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(118,185,0,0.35);
+        border-radius: 10px;
+        color: #1a2e05;
     }
 
     hr { border: none; border-top: 1px solid rgba(118,185,0,0.2); margin: 24px 0; }
@@ -295,6 +240,25 @@ def apply_theme_css(theme):
     @keyframes pulse-green {
         0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(22,163,74,0.4); }
         50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(22,163,74,0); }
+    }
+
+    /* Theme toggle button override — keep it styled distinctly */
+    .theme-toggle-btn > button {
+        background: linear-gradient(135deg, #1a2e05 0%, #2d4a0e 100%) !important;
+        color: #76b900 !important;
+        border: 1px solid rgba(118,185,0,0.4) !important;
+        border-radius: 10px !important;
+        padding: 10px 20px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+    }
+    .theme-toggle-btn > button:hover {
+        background: linear-gradient(135deg, #2d4a0e 0%, #3d6010 100%) !important;
+        box-shadow: 0 4px 12px rgba(118,185,0,0.25) !important;
+        transform: translateY(-1px) !important;
     }
 
     [data-testid="stDownloadButton"] > button {
@@ -420,64 +384,11 @@ def apply_theme_css(theme):
 
     [data-testid="stSpinner"] { color: #76b900; }
 
-    /* ── Dark mode selectbox: closed state ── */
     [data-testid="stSelectbox"] > div > div {
-        background: rgba(22,27,39,0.95) !important;
-        border: 1px solid rgba(118,185,0,0.35) !important;
-        border-radius: 10px !important;
-        color: #e2e8f0 !important;
+        background: rgba(22,27,39,0.9);
+        border: 1px solid rgba(118,185,0,0.3);
+        border-radius: 10px; color: #e2e8f0;
     }
-    [data-testid="stSelectbox"] > div > div > div,
-    [data-testid="stSelectbox"] > div > div svg {
-        color: #e2e8f0 !important;
-        fill: #e2e8f0 !important;
-    }
-
-    /* ── Dark mode dropdown popover/listbox ── */
-    [data-baseweb="popover"],
-    [data-baseweb="popover"] > div,
-    [data-baseweb="popover"] [data-baseweb="menu"] {
-        background: #161b27 !important;
-        border: 1px solid rgba(118,185,0,0.35) !important;
-        border-radius: 10px !important;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
-    }
-
-    /* Every list item — base state */
-    [data-baseweb="popover"] li,
-    [data-baseweb="popover"] [role="option"] {
-        background: #161b27 !important;
-        color: #e2e8f0 !important;
-        font-family: 'Inter', sans-serif !important;
-    }
-
-    /* Non-selected item hover */
-    [data-baseweb="popover"] li:hover,
-    [data-baseweb="popover"] [role="option"]:hover {
-        background: rgba(118,185,0,0.15) !important;
-        color: #e2e8f0 !important;
-    }
-
-    /* Selected item — always green, never white */
-    [data-baseweb="popover"] [aria-selected="true"],
-    [data-baseweb="popover"] li[aria-selected="true"] {
-        background: rgba(118,185,0,0.22) !important;
-        color: #76b900 !important;
-        font-weight: 600 !important;
-    }
-
-    /* Selected item on hover — keep green, do NOT turn white */
-    [data-baseweb="popover"] [aria-selected="true"]:hover,
-    [data-baseweb="popover"] li[aria-selected="true"]:hover {
-        background: rgba(118,185,0,0.30) !important;
-        color: #76b900 !important;
-        font-weight: 600 !important;
-    }
-
-    /* Scrollbar inside dropdown */
-    [data-baseweb="popover"] ::-webkit-scrollbar { width: 4px; }
-    [data-baseweb="popover"] ::-webkit-scrollbar-track { background: #0d1117; }
-    [data-baseweb="popover"] ::-webkit-scrollbar-thumb { background: rgba(118,185,0,0.4); border-radius: 2px; }
 
     hr { border: none; border-top: 1px solid rgba(118,185,0,0.15); margin: 24px 0; }
 
@@ -559,6 +470,25 @@ def apply_theme_css(theme):
         50%       { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74,222,128,0); }
     }
 
+    /* Theme toggle button override */
+    .theme-toggle-btn > button {
+        background: linear-gradient(135deg, rgba(118,185,0,0.12) 0%, rgba(118,185,0,0.06) 100%) !important;
+        color: #76b900 !important;
+        border: 1px solid rgba(118,185,0,0.35) !important;
+        border-radius: 10px !important;
+        padding: 10px 20px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+    }
+    .theme-toggle-btn > button:hover {
+        background: linear-gradient(135deg, rgba(118,185,0,0.22) 0%, rgba(118,185,0,0.12) 100%) !important;
+        box-shadow: 0 4px 12px rgba(118,185,0,0.2) !important;
+        transform: translateY(-1px) !important;
+    }
+
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
     [data-testid="stSidebar"] [data-testid="stWidgetLabel"] label,
     [data-testid="stSidebar"] label,
@@ -588,7 +518,8 @@ def apply_theme_css(theme):
 </style>
 """, unsafe_allow_html=True)
 
-apply_theme_css(effective_theme)
+apply_theme_css(st.session_state.theme)
+IS_DARK = st.session_state.theme == 'Dark'
 
 # ==============================
 # 🔹 Helper: Plotly Theme Config
@@ -753,6 +684,7 @@ def build_candlestick_chart(stock_data, predictions, prediction_dates, lookback_
         subplot_titles=('', '')
     )
 
+    # Candle colors
     if IS_DARK:
         inc_line, inc_fill = '#4ade80', 'rgba(74,222,128,0.8)'
         dec_line, dec_fill = '#f87171', 'rgba(248,113,113,0.8)'
@@ -982,6 +914,7 @@ STOCK = 'NVDA'
 # ==============================
 with st.sidebar:
 
+    # Logo — white for dark, black for light
     logo_url = (
         'https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/'
         '53b81d17aa5dbac6c1a29830ad4974ecd510a22d/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg'
@@ -1001,27 +934,15 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Appearance Dropdown ──
+    # ── Theme Toggle ──
     st.markdown("#### 🎨 Appearance")
 
-    theme_options = ['System 🖳', 'Light ☼', 'Dark ⏾']
-
-    current_theme = st.session_state.theme
-    if current_theme not in theme_options:
-        current_theme = 'System 🖳'
-    current_index = theme_options.index(current_theme)
-
-    selected_theme = st.selectbox(
-        label="Theme",
-        options=theme_options,
-        index=current_index,
-        key='theme_selectbox',
-        label_visibility='collapsed'
-    )
-
-    if selected_theme != st.session_state.theme:
-        st.session_state.theme = selected_theme
+    theme_label = "☀️ Switch to Light Mode" if IS_DARK else "🌙 Switch to Dark Mode"
+    st.markdown("<div class='theme-toggle-btn'>", unsafe_allow_html=True)
+    if st.button(theme_label, key='theme-toggle', use_container_width=True):
+        st.session_state.theme = 'Light' if IS_DARK else 'Dark'
         st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1243,6 +1164,7 @@ if st.session_state.prediction_results is not None:
     pred_change       = final_pred_price - last_actual_price
     pred_change_pct   = (pred_change / last_actual_price) * 100
 
+    # ── Forecast Summary Banner ──
     summary_ts_color = '#64748b' if IS_DARK else '#6b8f3a'
     st.markdown(f"""
     <div class='glass-card'>
@@ -1272,6 +1194,7 @@ if st.session_state.prediction_results is not None:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # ── Main Tabs ──
     tab1, tab2, tab3, tab4 = st.tabs([
         "📈  Price Action & Forecast",
         "🔮  Forecast Detail",
@@ -1279,6 +1202,7 @@ if st.session_state.prediction_results is not None:
         "📋  Historical Data"
     ])
 
+    # ─── Tab 1 ───
     with tab1:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         fig_candle = build_candlestick_chart(
@@ -1299,6 +1223,7 @@ if st.session_state.prediction_results is not None:
         </div>
         """, unsafe_allow_html=True)
 
+    # ─── Tab 2 ───
     with tab2:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
         fig_forecast = build_forecast_chart(prediction_dates, predictions, last_actual_price)
@@ -1340,6 +1265,7 @@ if st.session_state.prediction_results is not None:
         </div>
         """, unsafe_allow_html=True)
 
+    # ─── Tab 3 ───
     with tab3:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -1374,6 +1300,7 @@ if st.session_state.prediction_results is not None:
         with rs4:
             st.metric("Worst Day", f"{ret_1y.min():.2f}%")
 
+    # ─── Tab 4 ───
     with tab4:
         st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -1402,6 +1329,7 @@ if st.session_state.prediction_results is not None:
             )
 
 else:
+    # ── Placeholder State ──
     placeholder_h2 = '#f1f5f9' if IS_DARK else '#1a2e05'
     placeholder_p  = '#64748b' if IS_DARK else '#5a7a3a'
     placeholder_b  = '#76b900' if IS_DARK else '#4a7c00'
