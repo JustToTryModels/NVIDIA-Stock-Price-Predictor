@@ -1,3 +1,4 @@
+# Code-1
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -344,6 +345,34 @@ st.markdown("""
     @keyframes pulse-green {
         0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
         50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(74, 222, 128, 0); }
+    }
+
+    /* ── Custom Download Button Style (from Code-2) ── */
+    [data-testid="stDownloadButton"] > button {
+        background: linear-gradient(90deg, #ff8a00, #e52e71);
+        color: white !important;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 32px;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 16px rgba(229, 46, 113, 0.4);
+        width: 100%;
+        text-transform: uppercase;
+    }
+
+    [data-testid="stDownloadButton"] > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(255, 138, 0, 0.5);
+        background: linear-gradient(90deg, #ff9e23, #fa4a88);
+    }
+
+    [data-testid="stDownloadButton"] > button:active {
+        transform: translateY(0px);
+        box-shadow: 0 2px 8px rgba(229, 46, 113, 0.4);
     }
 </style>
 """, unsafe_allow_html=True)
