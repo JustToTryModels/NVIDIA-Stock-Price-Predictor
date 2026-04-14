@@ -143,8 +143,6 @@ st.markdown("""
 
     /* ── Tabs ── */
     [data-testid="stTabs"] [data-baseweb="tab-list"] {
-        display: flex; /* <-- ADDED FOR RESPONSIVE SPREAD */
-        width: 100%;   /* <-- ADDED FOR RESPONSIVE SPREAD */
         background: rgba(242, 249, 234, 0.9);
         border-radius: 12px;
         padding: 4px;
@@ -153,8 +151,6 @@ st.markdown("""
     }
 
     [data-testid="stTabs"] [data-baseweb="tab"] {
-        flex-grow: 1; /* <-- ADDED FOR RESPONSIVE SPREAD */
-        justify-content: center; /* <-- ADDED FOR CENTERING CONTENT */
         background: transparent;
         border-radius: 8px;
         color: #5a7a3a !important;
