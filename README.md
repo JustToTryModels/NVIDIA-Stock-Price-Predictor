@@ -132,6 +132,8 @@ Try the live stock price prediction model here:
 
 </div>
 
+<br>
+
 > Enter a date range and instantly get predicted NVIDIA closing prices powered by the trained **LSTM model**!
 
 <br>
