@@ -62,11 +62,10 @@ A comprehensive time series forecasting project that analyzes and predicts **NVI
 ## 🎯 Why NVIDIA?
 
 <div align="center">
-
-![NVIDIA Logo](https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/28d9cf153ca898289f7d3c793fa372634f581d87/Data/Images%20%26%20GIF/NVIDIA_logo_black.svg#gh-light-mode-only)
-![NVIDIA Logo](https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/c26001d4afcc32fb695c14e5685610afa8534427/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg#gh-dark-mode-only)
-
+  <img src="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/28d9cf153ca898289f7d3c793fa372634f581d87/Data/Images%20%26%20GIF/NVIDIA_logo_black.svg" alt="NVIDIA Logo" width="700"/>
 </div>
+
+<br>
 
 NVIDIA presents a compelling subject for stock price analysis due to several key factors:
 
@@ -146,11 +145,11 @@ Try the live stock price prediction model here:
 ## 📁 Project Structure
 
 ```
-nvidia-stock-price-prediction/
+NVIDIA-Stock-Price-Predictor/
 ├── Data/
 │   └── NVIDIA.csv                                  # Historical stock dataset (1999–2024)
 ├── Model/
-│   └── NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras  # Saved best LSTM model
+│   └── NVIDIA_LSTM_LB(5)_U(150)_RMSE(1.32).keras   # Saved best LSTM model
 ├── Notebook/
 │   └── NVIDIA_Stock_Price_Analysis.ipynb           # Full analysis & model comparison notebook
 ├── app.py                                          # Streamlit web application
@@ -461,4 +460,3 @@ jupyter notebook Notebook/NVIDIA_Stock_Price_Analysis.ipynb
 
   If this project was helpful, please consider giving it a ⭐
 </div>
-```
