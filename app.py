@@ -692,9 +692,11 @@ def get_live_quote(ticker='NVDA'):
         if len(hist) >= 2:
             prev_close = float(hist['Close'].iloc[-2])
             curr_price = float(hist['Close'].iloc[-1])
+            recent_vol = float(hist['Volume'].mean()) # Guaranteed solid fallback
         else:
             curr_price = float(info.get('currentPrice', info.get('previousClose', 0.0)))
             prev_close = float(info.get('previousClose', curr_price))
+            recent_vol = 0.0
             
         change = curr_price - prev_close
         change_pct = (change / prev_close) * 100 if prev_close != 0 else 0.0
@@ -707,7 +709,16 @@ def get_live_quote(ticker='NVDA'):
             except Exception:
                 market_cap = None
                 
-        volume = info.get('averageVolume') or info.get('volume')
+        # Better volume extraction: try standard keys, then fast_info, then fallback to historical mean
+        volume = info.get('averageVolume') or info.get('averageDailyVolume10Day') or info.get('regularMarketVolume')
+        if not volume:
+            try:
+                volume = getattr(t.fast_info, 'last_volume', None)
+            except Exception:
+                pass
+        # Final fallback guarantees a number if history works
+        if not volume and recent_vol > 0:
+            volume = recent_vol
 
         return {
             'price': curr_price,
@@ -718,7 +729,7 @@ def get_live_quote(ticker='NVDA'):
             'volume': volume,
         }
     except Exception:
-        # Fallback to ensure the variables are ALWAYS visible even if API limits are hit
+        # Fallback to ensure the variables are ALWAYS visible even if API limits are hit completely
         return {
             'price': 0.0,
             'prev_close': 0.0,
