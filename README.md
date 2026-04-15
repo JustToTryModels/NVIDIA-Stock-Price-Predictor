@@ -1,4 +1,3 @@
-```markdown
 <div align="center">
 
 # 📈 NVIDIA Stock Price Prediction
