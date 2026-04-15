@@ -677,35 +677,41 @@ def get_stock_data(ticker='NVDA'):
         return None
 
 
-# NOTE: Improved to be 100% exception-proof so the UI blocks ALWAYS render
+# NOTE: TTL lowered to keep the displayed quote blocks more real-time
 @st.cache_data(ttl=60)
 def get_live_quote(ticker='NVDA'):
     try:
         t = yf.Ticker(ticker)
-        # Fetch 5 days of history to guarantee we get the latest 2 trading days
+        # Fetching 5 days to ensure at least 2 days of history are available, even over long weekends
         hist = t.history(period='5d')
-        
-        if not hist.empty and len(hist) >= 2:
-            prev_close = float(hist['Close'].iloc[-2])
-            curr_price = float(hist['Close'].iloc[-1])
-        elif not hist.empty and len(hist) == 1:
-            curr_price = float(hist['Close'].iloc[-1])
-            prev_close = curr_price
-        else:
-            curr_price = 0.0
-            prev_close = 0.0
+        if hist.empty:
+            return None
             
+        curr_price = float(hist['Close'].iloc[-1])
+        prev_close = float(hist['Close'].iloc[-2]) if len(hist) >= 2 else curr_price
+        
         change = curr_price - prev_close
         change_pct = (change / prev_close) * 100 if prev_close > 0 else 0.0
         
-        # Use standard .info dictionary which is much safer and less prone to AttributeError
+        # Safely attempt to fetch info mapping without completely failing if one key is missing
+        market_cap = None
+        volume = None
         try:
             info = t.info
-            market_cap = info.get('marketCap', None)
-            volume = info.get('averageVolume', info.get('volume', None))
+            market_cap = info.get('marketCap')
+            volume = info.get('averageVolume', info.get('volume'))
         except Exception:
-            market_cap = None
-            volume = None
+            pass
+            
+        # Ultimate fallback methods
+        if not market_cap:
+            try:
+                market_cap = getattr(t.fast_info, 'market_cap', None)
+            except Exception:
+                pass
+        
+        if not volume:
+            volume = float(hist['Volume'].iloc[-1])
             
         return {
             'price': curr_price,
@@ -716,15 +722,7 @@ def get_live_quote(ticker='NVDA'):
             'volume': volume,
         }
     except Exception:
-        # Guarantee we return a dictionary so the UI blocks ALWAYS render
-        return {
-            'price': 0.0,
-            'prev_close': 0.0,
-            'change': 0.0,
-            'change_pct': 0.0,
-            'market_cap': None,
-            'volume': None,
-        }
+        return None
 
 
 # ==============================
@@ -1230,11 +1228,11 @@ if 'last_num_days' not in st.session_state:
 # ==============================
 quote = get_live_quote(STOCK)
 
+# Make "NVIDIA LAST PRICE" slightly bigger (wider column + delta line)
+c1, c2, c3, c4 = st.columns([1.35, 1, 1, 1])
+
 if quote:
     change_arrow = '▲' if quote['change'] >= 0 else '▼'
-
-    # Make "NVIDIA LAST PRICE" slightly bigger (wider column + delta line)
-    c1, c2, c3, c4 = st.columns([1.35, 1, 1, 1])
 
     with c1:
         st.metric(
@@ -1258,6 +1256,16 @@ if quote:
         vol = quote.get('volume')
         vol_str = f"{vol/1e6:.1f}M" if vol and vol > 0 else "N/A"
         st.metric("AVG VOLUME", vol_str)
+else:
+    # Always render the blocks even if the API network fetch entirely fails
+    with c1:
+        st.metric("NVIDIA LAST PRICE", "N/A")
+    with c2:
+        st.metric("PREVIOUS CLOSE", "N/A")
+    with c3:
+        st.metric("MARKET CAP", "N/A")
+    with c4:
+        st.metric("AVG VOLUME", "N/A")
 
 
 # ==============================
