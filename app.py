@@ -87,7 +87,8 @@ def apply_theme_css(theme):
 
     [data-testid="stSidebar"] .stMarkdown h1,
     [data-testid="stSidebar"] .stMarkdown h2,
-    [data-testid="stSidebar"] .stMarkdown h3 { color: #4a7c00; }
+    [data-testid="stSidebar"] .stMarkdown h3,
+    [data-testid="stSidebar"] .stMarkdown h4 { color: #000000; }
 
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(242,249,234,0.95));
