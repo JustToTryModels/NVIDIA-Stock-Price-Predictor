@@ -677,31 +677,54 @@ def get_stock_data(ticker='NVDA'):
         return None
 
 
-# NOTE: TTL lowered to keep the displayed quote blocks more real-time
+# NOTE: Improved to be 100% exception-proof so the UI blocks ALWAYS render
 @st.cache_data(ttl=60)
 def get_live_quote(ticker='NVDA'):
     try:
         t = yf.Ticker(ticker)
-        info = t.fast_info
-        hist = t.history(period='2d')
-        if len(hist) >= 2:
+        # Fetch 5 days of history to guarantee we get the latest 2 trading days
+        hist = t.history(period='5d')
+        
+        if not hist.empty and len(hist) >= 2:
             prev_close = float(hist['Close'].iloc[-2])
             curr_price = float(hist['Close'].iloc[-1])
+        elif not hist.empty and len(hist) == 1:
+            curr_price = float(hist['Close'].iloc[-1])
+            prev_close = curr_price
         else:
-            curr_price = float(info.last_price)
-            prev_close = float(info.previous_close) if hasattr(info, 'previous_close') else curr_price
+            curr_price = 0.0
+            prev_close = 0.0
+            
         change = curr_price - prev_close
-        change_pct = (change / prev_close) * 100
+        change_pct = (change / prev_close) * 100 if prev_close > 0 else 0.0
+        
+        # Use standard .info dictionary which is much safer and less prone to AttributeError
+        try:
+            info = t.info
+            market_cap = info.get('marketCap', None)
+            volume = info.get('averageVolume', info.get('volume', None))
+        except Exception:
+            market_cap = None
+            volume = None
+            
         return {
             'price': curr_price,
             'prev_close': prev_close,
             'change': change,
             'change_pct': change_pct,
-            'market_cap': getattr(info, 'market_cap', None),
-            'volume': getattr(info, 'three_month_average_volume', None),
+            'market_cap': market_cap,
+            'volume': volume,
         }
     except Exception:
-        return None
+        # Guarantee we return a dictionary so the UI blocks ALWAYS render
+        return {
+            'price': 0.0,
+            'prev_close': 0.0,
+            'change': 0.0,
+            'change_pct': 0.0,
+            'market_cap': None,
+            'volume': None,
+        }
 
 
 # ==============================
