@@ -1,3 +1,4 @@
+```markdown
 <div align="center">
 
 # 📈 NVIDIA Stock Price Prediction
@@ -62,7 +63,11 @@ A comprehensive time series forecasting project that analyzes and predicts **NVI
 ## 🎯 Why NVIDIA?
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/28d9cf153ca898289f7d3c793fa372634f581d87/Data/Images%20%26%20GIF/NVIDIA_logo_black.svg" alt="NVIDIA Logo" width="400"/>
+  <picture>
+    <source srcset="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/28d9cf153ca898289f7d3c793fa372634f581d87/Data/Images%20%26%20GIF/NVIDIA_logo_black.svg" media="(prefers-color-scheme: light)">
+    <source srcset="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/c26001d4afcc32fb695c14e5685610afa8534427/Data/Images%20%26%20GIF/NVIDIA_logo_white.svg" media="(prefers-color-scheme: dark)">
+    <img src="https://raw.githubusercontent.com/MarpakaPradeepSai/NVIDIA-Stock-Price-Predictor/28d9cf153ca898289f7d3c793fa372634f581d87/Data/Images%20%26%20GIF/NVIDIA_logo_black.svg" alt="NVIDIA Logo" width="400"/>
+  </picture>
 </div>
 
 NVIDIA presents a compelling subject for stock price analysis due to several key factors:
@@ -458,3 +463,4 @@ jupyter notebook Notebook/NVIDIA_Stock_Price_Analysis.ipynb
 
   If this project was helpful, please consider giving it a ⭐
 </div>
+```
